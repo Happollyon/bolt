@@ -1,0 +1,120 @@
+/**
+Primary background color: #282a36 (a dark, almost black color)
+Secondary background color: #44475a (a slightly lighter grayish-purple)
+Accent color: #ff79c6 (a bold magenta color that adds a pop of brightness)
+Text color: #f8f8f2 (a light grayish-white that provides good contrast with the dark background)
+Link color: #8be9fd (a light blue color that stands out against the dark background)
+**/
+
+body{
+    background-color: #282a36;
+    color: #f8f8f2;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+}
+
+#pannel{
+    height: 95%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+nav{
+    height: 5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: space-around;
+    border-bottom: #44475a solid 1px;
+}
+
+nav>div{
+    width: 20%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-right: #44475a solid 1px;
+}
+nav>div:hover{
+    cursor: pointer;
+    background-color: #44475a;
+}
+#selected{
+    font-weight: bold;
+    background-color: #ff79c6;
+}
+/*InfoDiscContainer*/
+.attackBtn{
+    background-color: #ff79c6;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+.attackBtn:hover{
+    cursor: pointer;
+    background-color: #8be9fd;
+}
+#infoDiscContainer{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+}
+#infoDiscHeader{
+    width: 100%;
+    height: 10%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+#infoDiscHeader>input{
+    width: 50%;
+    height: 100%;
+    border: none;
+    border-radius: 6px;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+#table{
+    width: 100%;
+    height: 70%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+   
+}
+#infoDiscHeader>input:focus{
+    outline: #8be9fd solid 2px;
+}
+#tableHeader{
+    width: 100%;
+    height: 5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #282a36;
+}
+#tableHeader>div{
+    width: 33%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: #44475a solid 1px;
+    border-top: #44475a solid 1px;
+}

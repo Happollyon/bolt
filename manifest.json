@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "BoltHack",
+    "description": "Base Level Extension",
+    "version": "1.0",
+    "action": {
+      "default_popup": "hello.html",
+      "default_icon": "bolt.png"
+    },
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "content_scripts": [
+        {
+          "matches": [
+            "<all_urls>"
+          ],
+          "js": [
+            "script.js"
+          ]
+        }]
+  }
