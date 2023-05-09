@@ -54,8 +54,23 @@ async function infoDisclosure(){
             const response = await fetch(val,{mode:'no-cors'});
             const body = await response.text();
             const statusCode = response.status;
-            console.log(`Response body: ${body}`);
-            console.log(`Status code: ${statusCode}`);
+           // console.log(`Response body: ${body}`);
+            //console.log(`Status code: ${statusCode}`);
+            
+           let reg = fetch('./reg.json').then(response=>response.json().then(data=>{
+            for (const key in data) {
+                if(data.hasOwnProperty(key)){
+                    //console.log(key + " -> " + data[key]);
+                    let val = body.match(data[key]);
+                    if(val != null){
+                        document.getElementById("table").innerHTML += "<div class='row'><div class='col'>"+"home"+"</div><div class='col'>"+key+"</div><div class='col'>"+val+"</div></div>";
+                        console.log(key + " -> " + data[key]+" value: "+val);
+                    }
+                }
+              }
+           }))
+
+            
           } catch (error) {
             console.error(error);
           }
