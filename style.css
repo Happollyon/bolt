@@ -139,11 +139,19 @@ nav>div:hover{
     align-items: center;
     overflow-y: scroll;
 }
+
+
 .col{
     width: 33%;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
    
+}
+
+.col > a{
+    text-decoration: none;
+    color: #f8f8f2;
 }

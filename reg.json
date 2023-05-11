@@ -5,7 +5,7 @@
     "Facebook Access Token": "EAACEdEose0cBA[0-9A-Za-z]+",
     "Facebook OAuth": "[f|F][a|A][c|C][e|E][b|B][o|O][o|O][k|K].*['|\"][0-9a-f]{32}['|\"]",
     "Generic API Key": "[a|A][p|P][i|I][_]?[k|K][e|E][y|Y].*['|\"][0-9a-zA-Z]{32,45}['|\"]",
-    "Generic Secret": "[s|S][e|E][c|C][r|R][e|E][t|T].*['|\"][0-9a-zA-Z]{32,45}['|\"]",
+    "Generic Secret": "[/[sS][eE][cC][rR][eE][tT](?:[ =:-])([0-9a-zA-Z]{1,25})/",
     "GitHub": "[g|G][i|I][t|T][h|H][u|U][b|B].*['|\"][0-9a-zA-Z]{35,40}['|\"]",
     "GitLab PAT": "glpat-[0-9a-zA-Z\\-_]{20}",
     "GitLab Registration Token": "(_|-?)([t|T][o|O][k|K][e|E][n|N])(:|=| )(.{0,3})(\\S{20})(.?)(\\n|\\r|\\n\\r|$)",
@@ -35,7 +35,6 @@
     "Twilio API Key": "SK[0-9a-fA-F]{32}",
     "Twitter Access Token": "[t|T][w|W][i|I][t|T][t|T][e|E][r|R].*[1-9][0-9]+-[0-9a-zA-Z]{40}",
     "Twitter OAuth": "[t|T][w|W][i|I][t|T][t|T][e|E][r|R].*['|\"][0-9a-zA-Z]{35,44}['|\"]",
-    "username:password": "[a-zA-Z0-9_]{1,20}:[\\s\\S]{3,30}",
     "US Social Security Number": "[0-9]{3}-[0-9]{2}-[0-9]{4}",
     "email:password":"/[0-9A-Za-z.@]+:[0-z]+/g",
     "mySQL Password": "mysql\\s*\\.\\s*password\\s*=\\s*[\"|']?[0-9a-zA-Z\\-_]{32,45}[\"|']?\\s*;",
@@ -44,13 +43,7 @@
     "mySQL Legacy Password 3": "new mysqli\\s*\\(.*,[\\s]*[\"|']?[0-9a-zA-Z\\-_]{32,45}[\"|']?\\s*\\)",
     "pgSQL Password": "pg_(connect|pconnect)\\s*\\(.*,[\\s]*[\"|']?[0-9a-zA-Z\\-_]{32,45}[\"|']?\\s*\\)",
     "pgSQL Legacy Password": "pg_(connect|pconnect)\\s*\\(.*,[\\s]*[\"|']?[0-9a-zA-Z\\-_]{32,45}[\"|']?\\s*\\)",
-    "generic password": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D].*['|\"][0-9a-zA-Z]{32,45}['|\"]",
-    "generic password 2": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D].*[:|=| ]{1,2}['|\"][0-9a-zA-Z]{32,45}['|\"]",
-    "generic password 3": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D].*[:|=| ]{1,2}[0-9a-zA-Z]{32,45}",
-    "generic password 4": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D].*[\"|']?[0-9a-zA-Z]{32,45}[\"|']?",
-    "generic password 5": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D]\\s*[:|=| ]{1,2}\\s*[\"|']?[0-9a-zA-Z]{32,45}[\"|']?",
-    "generic password 6": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D]\\s*[:|=| ]{1,2}\\s*[0-9a-zA-Z]{32,45}",
-    "generic password 7": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D]\\s*=\\s*[\"|']?[0-9a-zA-Z]{32,45}[\"|']?",
-    "generic password 8": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D]\\s*=\\s*[0-9a-zA-Z]{32,45}",
-    "generic password 9": "[p|P][a|A][s|S][s|S][w|W][o|O][r|R][d|D]\\s*\\(\\s*[\"|']?[0-9a-zA-Z]{32,45}[\"|']?\\s*\\)"
+    "pgSQL Legacy Password 2": "pg_connect\\s*\\(.*,[\\s]*[\"|']?[0-9a-zA-Z\\-_]{32,45}[\"|']?\\s*\\)",
+    "pgSQL Legacy Password 3": "pg_pconnect\\s*\\(.*,[\\s]*[\"|']?[0-9a-zA-Z\\-_]{32,45}[\"|']?\\s*\\)",
+    "password":"(?=[A-Z\\d]*[a-z])(?=[a-z\\d]*[A-Z])(?=[a-zA-Z]*[\\d])[a-zA-Z\\d]{6,30}"
 }
