@@ -1,55 +1,97 @@
 
-//atatching event listeners
+
+/**
+ * @fileoverview
+ * Provides interactions for all pages in the UI.
+ * Created by : Fagner Nunes
+ * Date: april 2023 
+ * 
+ */
+
+
+// to dos
+    // 1. start infodisc
+    // 2. check if screen is already loaded
+    // 3. if file is / add index.html to it
+    // 4. add read me
+
+
+
+//atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
     
     const navBtn = document.querySelectorAll('.navBtn');
     navBtn.forEach(navBtn =>navBtn.addEventListener('click',(event)=>{
-        select(event.target);
+        select(event.target); // if you click a nav butoon you call the select function and pass the button as a parameter
     }));
   });
 
-
+//this function is called when a nav button is clicked
 function select(element){
+  // you remove the id from all the nav buttons
     const navBtn = document.querySelectorAll('.navBtn');
     navBtn.forEach(navBtn =>navBtn.removeAttribute("id"));
+
+    // you add the id to the nav button that was clicked
     element.id="selected";
     
+    //you call updatePannel and pass the innerHTML of the nav button that was clicked => I.E. infoDisc
     updatePannel(element.innerHTML)
 
 }
 
 
 function updatePannel(doc){
-    const xhr = new XMLHttpRequest();
-    xhr.onload = () => {
-        if (xhr.status === 200) {
-            const div = document.createElement('div');
-            div.innerHTML = xhr.responseText;
+  const xhr = new XMLHttpRequest();
+  xhr.onload = () => {
+    
+    if (xhr.status === 200) {
+      const div = document.createElement('div');
+      div.innerHTML = xhr.responseText;
 
-            const infoDiscContainer = div.querySelector('#infoDiscContainer');
-            const pannel = document.querySelector('#pannel');
+      
+      // if the button clicked is infoDisc, it adds the infoDisc.html file to the pannel
+      if(doc == "infoDisc"){
+        //gets container from infoDisc.html
+        const infoDiscContainer = div.querySelector('#infoDiscContainer');        
+        const pannel = document.querySelector('#pannel'); // gets the pannel
+        pannel.innerHTML = ""; // clears the pannel
+        
+        pannel.appendChild(infoDiscContainer); //append the infoDiscContainer to the pannel
+        
+        // adds an event listener to the infoDisc button
+        const infoDisc = document.querySelector('#infoDisc');
+        infoDisc.addEventListener('click', fetchAndCrawl);
 
-            pannel.appendChild(infoDiscContainer);
 
-            if(doc == "infoDisc"){
-                const infoDisc = document.querySelector('#infoDisc');
-                infoDisc.addEventListener('click', fetchAndCrawl);
-
-            }
+      }
     }
 };
+
+// if the inner html of the nav button is infoDisc, it fetches the infoDisc.html file and adds it to the pannel
 if(doc == "infoDisc"){
     xhr.open('GET', 'infoDisc.html');
     xhr.send();
 }
+}
 
 
+//this function calls itself recursively to crawl the website and check for info disclosure
+var url;
+var visitedUrl = []; // this is to keep track of the visited urls so it doesnt crawl the same url twice
+var count = 0;
 // Function to fetch a webpage and crawl links
-async function fetchAndCrawl() {
-    // Fetch the webpage
-    let url = document.getElementById("website").value;
+async function fetchAndCrawl(newUrl) {
+    
+  // Fetch the webpage
+       
+    if(!url){
+    url = document.getElementById("website").value;
 
     infoDisclosure(url);
+    }else{
+      url = newUrl;
+    }
     const response = await fetch(url);
     const text = await response.text();
   
@@ -66,15 +108,21 @@ async function fetchAndCrawl() {
       const link = match[1];
       const linkUrl = new URL(link, baseUrl);
       console.log("linkUrl: "+linkUrl);
-      // Check if the link has the same host as the base URL
-      if (linkUrl.host === baseUrl.host) {
-        console.log(linkUrl.href);
+      // Check if the link has the same host as the base URL and has not been visited yet
+      if (linkUrl.host === baseUrl.host && !visitedUrl.includes(linkUrl.href)) {
+        
+         fetchAndCrawl(linkUrl.href);
+        //call the infoDisclosure function to check for info disclosure and add the data to the table 
         infoDisclosure(linkUrl.href);
+
         // Add your logic to process the link here
+        visitedUrl.push(linkUrl.href);//add the url to the visitedUrl array
       }
     }
   }
-}
+
+
+//function to check for info disclosure
 async function infoDisclosure(val){
 
     // gets the value of the website input
