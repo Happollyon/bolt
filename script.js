@@ -64,7 +64,19 @@ function updatePannel(doc){
         infoDisc.addEventListener('click', fetchAndCrawl);
 
 
+      }else if(doc == "Directory Fuzz"){
+        const DirectoryFuzzContainer = div.querySelector('#DirectoryFuzzContainer');        
+        const pannel = document.querySelector('#pannel'); // gets the pannel
+        pannel.innerHTML = ""; // clears the pannel
+        
+        pannel.appendChild(DirectoryFuzzContainer); //append the DirectoryFuzzContainer to the pannel
+
+        // adds an event listener to the directoryFuzz button
+        const infoDisc = document.querySelector('#directoryFuzz');
+        infoDisc.addEventListener('click', Fuzz);
       }
+
+    
     }
 };
 
@@ -72,9 +84,17 @@ function updatePannel(doc){
 if(doc == "infoDisc"){
     xhr.open('GET', 'infoDisc.html');
     xhr.send();
-}
+}else if(doc == "Directory Fuzz"){
+    xhr.open('GET', 'directoryFuzz.html');
+    xhr.send();
+  } 
 }
 
+//this function is called when the directoryFuzz button is clicked
+function Fuzz(){
+
+  console.log("fuzz");
+}
 
 //this function calls itself recursively to crawl the website and check for info disclosure
 var url;
