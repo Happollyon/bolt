@@ -64,7 +64,21 @@ function updatePannel(doc){
         infoDisc.addEventListener('click', fetchAndCrawl);
 
 
+      }else if(doc=="Directory Fuzz"){
+        //gets container from directoryFuzz.html
+        
+        const directoryFuzzContainer = div.querySelector('#directoryFuzzContainer');
+        const pannel = document.querySelector('#pannel'); // gets the pannel
+        pannel.innerHTML = ""; // clears the pannel
+
+        pannel.appendChild(directoryFuzzContainer); //append the directoryFuzzContainer to the pannel
+
+        // adds an event listener to the directoryFuzz button
+        const directoryFuzzBtn = document.querySelector('#DirectoryFuzz');
+        directoryFuzzBtn.addEventListener('click', directoryFuzz);
+
       }
+
     }
 };
 
@@ -72,10 +86,17 @@ function updatePannel(doc){
 if(doc == "infoDisc"){
     xhr.open('GET', 'infoDisc.html');
     xhr.send();
+}else if(doc=="Directory Fuzz"){
+    xhr.open('GET', 'directoryFuzz.html');
+    xhr.send();
 }
 }
 
 
+function directoryFuzz(){
+  console.log("directoryFuzz");
+
+}
 //this function calls itself recursively to crawl the website and check for info disclosure
 var url;
 var visitedUrl = []; // this is to keep track of the visited urls so it doesnt crawl the same url twice

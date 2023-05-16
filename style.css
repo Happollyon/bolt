@@ -61,7 +61,7 @@ nav>div:hover{
     cursor: pointer;
     background-color: #8be9fd;
 }
-#infoDiscContainer{
+#infoDiscContainer,#DirectoryFuzzContainer{
     width: 100%;
     height: 100%;
     display: flex;
@@ -69,7 +69,7 @@ nav>div:hover{
     justify-content: space-around;
     align-items: center;
 }
-#infoDiscHeader{
+#infoDiscHeader,#DirectoryFuzzHeader{
     width: 100%;
     height: 10%;
     display: flex;
@@ -77,7 +77,7 @@ nav>div:hover{
     justify-content: space-around;
     align-items: center;
 }
-#infoDiscHeader>input{
+#infoDiscHeader>input,#DirectoryFuzzHeader>input{
     width: 50%;
     height: 100%;
     border: none;
@@ -97,7 +97,7 @@ nav>div:hover{
     align-items: center;
    
 }
-#infoDiscHeader>input:focus{
+#infoDiscHeader>input:focus,#DirectoryFuzzContainer>input:focus{
     outline: #8be9fd solid 2px;
 }
 #tableHeader{
