@@ -94,8 +94,57 @@ if(doc == "infoDisc"){
 
 
 function directoryFuzz(){
-  console.log("directoryFuzz");
 
+  /*
+   * 
+   * 1- get the url from the input
+   * 2- look for subdomains.txt
+   * 3- look for directory1.txt
+   * 4- look for directory2.txt
+   * 5- look for files.txt and backups1.txt and backups2.txt
+   */
+
+  console.log("start");
+  const url = document.getElementById("directoryWebsite").value;
+
+  
+  FindSubDomains(url);
+
+
+ 
+
+}
+function FindSubDomains(url){
+
+  console.log("FindSubDomains");
+  //get the subdomains.txt file
+  // how to add timeout to fethc
+  fetch('./fuzz/subdomains.txt').then(response=>response.text().then(data=>{
+      
+    // print each word in the file. There is one word per line
+     for(const payload of data.split('\n')){
+      
+       let newUrl = url.replace("www.",payload+".");
+       console.log(newUrl);
+
+       fetch(newUrl).then(response=>
+        {
+        console.log("Headers");
+        console.log(response.status);
+        if(response.status != 404)
+        {
+          response.text().then(data=>
+            {
+              console.log(data.status);
+              console.log(data.status);
+           })
+        }else{
+          console.log("404");
+       }
+       
+      });
+     }
+  }));
 }
 //this function calls itself recursively to crawl the website and check for info disclosure
 var url;
