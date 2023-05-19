@@ -93,6 +93,24 @@ if(doc == "infoDisc"){
 }
 
 
+async function makeRequests(urls, batchSize) {
+  const batches = [];
+
+  // split the urls into batches  
+  for (let i = 0; i < urls.length; i += batchSize) {
+
+    batches.push(urls.slice(i, i + batchSize));
+  }
+
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    const promises = batch.map(url => fetch(url));
+    await Promise.all(promises);
+  }
+}
+
+
+
 function directoryFuzz(){
 
   /*
@@ -108,44 +126,100 @@ function directoryFuzz(){
   const url = document.getElementById("directoryWebsite").value;
 
   
-  FindSubDomains(url);
+  //findSubDomains(url);
 
-
+  findDirectories(url);
  
 
 }
-function FindSubDomains(url){
+
+async function findDirectories(url){
+
+    
+    
+    document.getElementById("table").innerHTML = "loading TXT file";
+    await fetch('./fuzz/directory1.json').then(response=>response.json().then(txt=>{
+      document.getElementById("table").innerHTML = "TXT file loaded";
+      
+      const urls=[] // an array of URLs to fetch
+      for(payload in txt){
+        let newUrl;
+        if(url.endsWith("/")){
+  
+         newUrl = url+payload;
+  
+        }else{
+        newUrl = url+"/"+payload;
+        }
+        urls.push(newUrl);
+      }
+      const batchSize = 50; // the number of requests to make at once
+      makeRequests(urls, batchSize);
+      
+      // for(payload in txt){
+      //   let newUrl;
+      //   if(url.endsWith("/")){
+  
+      //    newUrl = url+payload;
+  
+      //   }else{
+      //   newUrl = url+"/"+payload;
+      //   }
+      //   fetch(newUrl).then(response=>{
+      //     if(response.status != 404){
+      //     response.text().then(data=>{ 
+      //       console.log(data.status);
+            
+      //     }
+      //   )}else{
+  
+      //     console.log("404");
+      //   } })
+      // }
+
+    })) 
+    
+}
+
+
+function findSubDomains(url){
 
   console.log("FindSubDomains");
   //get the subdomains.txt file
   // how to add timeout to fethc
   fetch('./fuzz/subdomains.txt').then(response=>response.text().then(data=>{
-      
-    // print each word in the file. There is one word per line
-     for(const payload of data.split('\n')){
-      
-       let newUrl = url.replace("www.",payload+".");
-       console.log(newUrl);
 
-       fetch(newUrl).then(response=>
-        {
-        console.log("Headers");
-        console.log(response.status);
-        if(response.status != 404)
-        {
-          response.text().then(data=>
-            {
-              console.log(data.status);
-              console.log(data.status);
-           })
-        }else{
-          console.log("404");
-       }
+    const urls = data; // an array of URLs to fetch
+    const batchSize = 50; // the number of requests to make at once
+    makeRequests(urls, batchSize);
+  //   // print each word in the file. There is one word per line
+  //    for(const payload of data.split('\n')){
+      
+  //      let newUrl = url.replace("www.",payload+".");
+  //      console.log(newUrl);
+
+  //      fetch(newUrl).then(response=>
+  //       {
+  //       console.log("Headers");
+  //       console.log(response.status);
+  //       if(response.status != 404)
+  //       {
+  //         response.text().then(data=>
+  //           {
+  //             console.log(data.status);
+  //             console.log(data.status);
+  //          })
+  //       }else{
+  //         console.log("404");
+  //      }
        
-      });
-     }
-  }));
+  //     });
+  //    }
+  // }
+  
+}));
 }
+
 //this function calls itself recursively to crawl the website and check for info disclosure
 var url;
 var visitedUrl = []; // this is to keep track of the visited urls so it doesnt crawl the same url twice
