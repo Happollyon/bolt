@@ -10,11 +10,9 @@
 
 
 // to dos
-    // 1. start infodisc
-    // 2. check if screen is already loaded
-    // 3. if file is / add index.html to it
-    // 4. add read me
-
+   // add loading animation
+   // fix bug where subdomains are not being checked
+   //add to table values found and code
 
 
 //atatching event listeners to all the nav buttons
@@ -93,7 +91,7 @@ if(doc == "infoDisc"){
 }
 
 
-async function makeRequests(urls, batchSize) {
+async function makeRequests(urls, batchSize,url,type) {
   const batches = [];
 
   // split the urls into batches  
@@ -101,12 +99,30 @@ async function makeRequests(urls, batchSize) {
 
     batches.push(urls.slice(i, i + batchSize));
   }
+  const loading = document.getElementById('loading');
+  const loadingMsg = document.getElementById('message');
+  loadingMsg.innerHTML = "loading "+type+"..."+"0%";
+  loading.style.display = 'flex';
+  let loadedPercent = 0;
 
   for (let i = 0; i < batches.length; i++) {
+    
     const batch = batches[i];
     const promises = batch.map(url => fetch(url));
-    await Promise.all(promises);
+
+    const responses = await Promise.all(promises);
+
+    responses.forEach(response => {
+      if(response.status == 200){
+        let directory = response.url.replace(url,"");
+        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+"val"+" n>"+directory+"</a></div><div class='col'>"+"non"+"</div><div class='col'>"+response.status+"</div></div>";
+
+      }});
+    
+    loadedPercent = Math.round(((i*batchSize)/(batches.length*batchSize))*100);
+    loadingMsg.innerHTML = "loading "+type+"..."+loadedPercent.toString()+"%";
   }
+  loading.style.display = 'none';
 }
 
 
@@ -135,50 +151,31 @@ function directoryFuzz(){
 
 async function findDirectories(url){
 
-    
-    
-    document.getElementById("table").innerHTML = "loading TXT file";
-    await fetch('./fuzz/directory1.json').then(response=>response.json().then(txt=>{
-      document.getElementById("table").innerHTML = "TXT file loaded";
+    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json','./fuzz/directory1.json']
+    //get the directory1.txt file
+    for(let i = 0; i<directoriesFiles.length;i++){
       
-      const urls=[] // an array of URLs to fetch
-      for(payload in txt){
-        let newUrl;
-        if(url.endsWith("/")){
-  
-         newUrl = url+payload;
-  
-        }else{
-        newUrl = url+"/"+payload;
-        }
-        urls.push(newUrl);
-      }
-      const batchSize = 50; // the number of requests to make at once
-      makeRequests(urls, batchSize);
+        await fetch(directoriesFiles[i]).then(response=>response.json().then(txt=>{
+          console.log(txt.length);
+          const urls=[] // an array of URLs to fetch
+          for(payload in txt){
+            let newUrl;
+            if(url.endsWith("/")){
       
-      // for(payload in txt){
-      //   let newUrl;
-      //   if(url.endsWith("/")){
-  
-      //    newUrl = url+payload;
-  
-      //   }else{
-      //   newUrl = url+"/"+payload;
-      //   }
-      //   fetch(newUrl).then(response=>{
-      //     if(response.status != 404){
-      //     response.text().then(data=>{ 
-      //       console.log(data.status);
-            
-      //     }
-      //   )}else{
-  
-      //     console.log("404");
-      //   } })
-      // }
+            newUrl = url+payload;
+      
+            }else{
+            newUrl = url+"/"+payload;
+            }
+            urls.push(newUrl);
+          }
+          const batchSize = 50; // the number of requests to make at once
+          makeRequests(urls, batchSize,url,"Directory");
+          
+      
 
-    })) 
-    
+        })) 
+      }
 }
 
 
