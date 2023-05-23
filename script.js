@@ -114,6 +114,7 @@ async function makeRequests(urls, batchSize,url,type) {
 
     responses.forEach(response => {
       if(response.status == 200){
+        
         let directory = response.url.replace(url,"");
         document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+"val"+" n>"+directory+"</a></div><div class='col'>"+"non"+"</div><div class='col'>"+response.status+"</div></div>";
 
@@ -151,24 +152,31 @@ function directoryFuzz(){
 
 async function findDirectories(url){
 
-    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json','./fuzz/directory1.json']
+    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json']
     //get the directory1.txt file
     for(let i = 0; i<directoriesFiles.length;i++){
       
         await fetch(directoriesFiles[i]).then(response=>response.json().then(txt=>{
-          console.log(txt.length);
+          
           const urls=[] // an array of URLs to fetch
-          for(payload in txt){
+          txt.forEach(payload => {
+           
             let newUrl;
-            if(url.endsWith("/")){
+            if(url.endsWith("/") && payload.startsWith("/")){
+              newUrl = url+payload.substring(1);
+            
       
-            newUrl = url+payload;
-      
-            }else{
-            newUrl = url+"/"+payload;
+            }else if(url.endsWith("/") && !payload.startsWith("/")){
+            
+              newUrl = url+payload;
+            }else if(!url.endsWith("/") && payload.startsWith("/")){
+              newUrl = url+payload;
+            }else if(!url.endsWith("/") && !payload.startsWith("/")){
+              newUrl = url+"/"+payload;
             }
+            console.log(newUrl);
             urls.push(newUrl);
-          }
+          })
           const batchSize = 50; // the number of requests to make at once
           makeRequests(urls, batchSize,url,"Directory");
           
