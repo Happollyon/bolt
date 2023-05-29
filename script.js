@@ -99,16 +99,16 @@ async function makeRequests(urls, batchSize,url,type) {
 
     batches.push(urls.slice(i, i + batchSize));
   }
-  const loading = document.getElementById('loading');
-  const loadingMsg = document.getElementById('message');
-  loadingMsg.innerHTML = "loading "+type+"..."+"0%";
-  loading.style.display = 'flex';
+
+  const bar = document.getElementById('Directory-progress');
+ 
   let loadedPercent = 0;
+  let numberOfPayloads = urls.length;
 
   for (let i = 0; i < batches.length; i++) {
     
     const batch = batches[i];
-    const promises = batch.map(url => fetch(url));
+    try{const promises = batch.map(url => fetch(url,{timeout: 5000}));
 
     const responses = await Promise.all(promises);
 
@@ -120,8 +120,12 @@ async function makeRequests(urls, batchSize,url,type) {
 
       }});
     
-    loadedPercent = Math.round(((i*batchSize)/(batches.length*batchSize))*100);
-    loadingMsg.innerHTML = "loading "+type+"..."+loadedPercent.toString()+"%";
+    loadedPercent = Math.round(((i*batchSize)*100)/numberOfPayloads);
+    bar.style.width = loadedPercent.toString()+"%";  
+    
+  }catch(err){
+      console.log(err);
+    }
   }
   loading.style.display = 'none';
 }
@@ -139,7 +143,7 @@ function directoryFuzz(){
    * 5- look for files.txt and backups1.txt and backups2.txt
    */
 
-  console.log("start");
+  
   const url = document.getElementById("directoryWebsite").value;
 
   
@@ -151,14 +155,14 @@ function directoryFuzz(){
 }
 
 async function findDirectories(url){
-
+    const urls=[] // an array of URLs to fetch
     const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json']
     //get the directory1.txt file
     for(let i = 0; i<directoriesFiles.length;i++){
       
         await fetch(directoriesFiles[i]).then(response=>response.json().then(txt=>{
           
-          const urls=[] // an array of URLs to fetch
+          
           txt.forEach(payload => {
            
             let newUrl;
@@ -174,22 +178,21 @@ async function findDirectories(url){
             }else if(!url.endsWith("/") && !payload.startsWith("/")){
               newUrl = url+"/"+payload;
             }
-            console.log(newUrl);
+            
             urls.push(newUrl);
           })
-          const batchSize = 50; // the number of requests to make at once
-          makeRequests(urls, batchSize,url,"Directory");
-          
-      
 
         })) 
       }
+      console.log(urls.length);
+      const batchSize = 50; // the number of requests to make at once
+      makeRequests(urls, batchSize,url,"Directory");
 }
 
 
 function findSubDomains(url){
 
-  console.log("FindSubDomains");
+  
   //get the subdomains.txt file
   // how to add timeout to fethc
   fetch('./fuzz/subdomains.txt').then(response=>response.text().then(data=>{
@@ -256,7 +259,7 @@ async function fetchAndCrawl(newUrl) {
     while ((match = linkRegex.exec(text)) !== null) {
       const link = match[1];
       const linkUrl = new URL(link, baseUrl);
-      console.log("linkUrl: "+linkUrl);
+      
       // Check if the link has the same host as the base URL and has not been visited yet
       if (linkUrl.host === baseUrl.host && !visitedUrl.includes(linkUrl.href)) {
         
