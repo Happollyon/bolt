@@ -6,6 +6,7 @@ import os
 
 def txt_to_json(txt_path):
     # read the text file
+    print("(+) reading txt file..")
     with open(txt_path, 'r') as f:
         lines = f.readlines()
 
@@ -13,8 +14,10 @@ def txt_to_json(txt_path):
     values = [line.strip() for line in lines]
 
     # write the values to a JSON file
+    print("(+) Creating .json file..")
     json_path = os.path.splitext(txt_path)[0] + '.json'
     with open(json_path, 'w') as f:
+        print("(+) Writing file..")
         json.dump(values, f)
 if __name__ == '__main__':
 

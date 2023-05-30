@@ -15,6 +15,25 @@
    //add to table values found and code
 
 
+let currentTabId = null;
+
+chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+  currentTabId = tabs[0].id;
+});
+
+chrome.tabs.onActivated.addListener(function(activeInfo) {
+  if (activeInfo.tabId !== currentTabId) {
+    // User switched tabs, pause extension execution
+    // You can use a flag to pause the execution of your extension
+  } else {
+    // User returned to original tab, resume extension execution
+    // You can use a flag to resume the execution of your extension
+  }
+});
+   chrome.runtime.onSuspend.addListener(function() {
+    // Perform any necessary cleanup here
+    return true; // Prevent the extension from being unloaded
+  });
 //atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -91,7 +110,7 @@ if(doc == "infoDisc"){
 }
 
 
-async function makeRequests(urls, batchSize,url,type) {
+async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
   const batches = [];
 
   // split the urls into batches  
@@ -113,11 +132,14 @@ async function makeRequests(urls, batchSize,url,type) {
     const responses = await Promise.all(promises);
 
     responses.forEach(response => {
-      if(response.status == 200){
+      if(response.status != 404){
         
         let directory = response.url.replace(url,"");
-        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+"val"+" n>"+directory+"</a></div><div class='col'>"+"non"+"</div><div class='col'>"+response.status+"</div></div>";
-
+        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+response.url+" n>"+recursiveDirectory+directory+"</a></div><div class='col'>"+type+"</div><div class='col'>"+response.status+"</div></div>";
+        if(type=="Directory" && response.status == 200 && directory != "/" && directory != "" && directory != "//" && directory != "index/"){
+          
+          findDirectories(response.url,directory);
+        }
       }});
     
     loadedPercent = Math.round(((i*batchSize)*100)/numberOfPayloads);
@@ -127,7 +149,7 @@ async function makeRequests(urls, batchSize,url,type) {
       console.log(err);
     }
   }
-  loading.style.display = 'none';
+  
 }
 
 
@@ -149,14 +171,14 @@ function directoryFuzz(){
   
   //findSubDomains(url);
 
-  findDirectories(url);
+  findDirectories(url,"");
  
 
 }
 
-async function findDirectories(url){
+async function findDirectories(url,directory){
     const urls=[] // an array of URLs to fetch
-    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json']
+    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json','./fuzz/backup1.json','./fuzz/backup2.json']
     //get the directory1.txt file
     for(let i = 0; i<directoriesFiles.length;i++){
       
@@ -186,44 +208,30 @@ async function findDirectories(url){
       }
       console.log(urls.length);
       const batchSize = 50; // the number of requests to make at once
-      makeRequests(urls, batchSize,url,"Directory");
+      makeRequests(urls, batchSize,url,"Directory",directory);
 }
 
 
-function findSubDomains(url){
+async function findSubDomains(url){
 
-  
+  const urls = []; // an array of URLs to fetch
   //get the subdomains.txt file
-  // how to add timeout to fethc
-  fetch('./fuzz/subdomains.txt').then(response=>response.text().then(data=>{
-
-    const urls = data; // an array of URLs to fetch
-    const batchSize = 50; // the number of requests to make at once
-    makeRequests(urls, batchSize);
-  //   // print each word in the file. There is one word per line
-  //    for(const payload of data.split('\n')){
+  // how to add timeout to fetch
+  fetch('./fuzz/subdomains.json').then(response=>response.json().then(data=>{
+    data.map(subdomain=>{
+      let newUrl;
+      if(url.startsWith("http://") || url.startsWith("https://")){
+        newUrl = url.replace("www",subdomain);
+      }else{
+        newUrl = subdomain+"."+url;
+      }
+      urls.push(newUrl);
       
-  //      let newUrl = url.replace("www.",payload+".");
-  //      console.log(newUrl);
-
-  //      fetch(newUrl).then(response=>
-  //       {
-  //       console.log("Headers");
-  //       console.log(response.status);
-  //       if(response.status != 404)
-  //       {
-  //         response.text().then(data=>
-  //           {
-  //             console.log(data.status);
-  //             console.log(data.status);
-  //          })
-  //       }else{
-  //         console.log("404");
-  //      }
-       
-  //     });
-  //    }
-  // }
+    })
+    
+    const batchSize = 50; // the number of requests to make at once
+    makeRequests(urls, batchSize,url,"Subdomain");
+  
   
 }));
 }
