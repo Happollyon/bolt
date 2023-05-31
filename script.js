@@ -34,6 +34,14 @@ chrome.tabs.onActivated.addListener(function(activeInfo) {
     // Perform any necessary cleanup here
     return true; // Prevent the extension from being unloaded
   });
+
+
+// preventing consle from loggin 404
+window.addEventListener('fetch', event => {
+  if (event.response.status === 404) {
+    event.preventDefault();
+  }
+});
 //atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -110,7 +118,7 @@ if(doc == "infoDisc"){
 }
 
 
-async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
+async function makeRequests(urls, batchSize,url,type)  {
   const batches = [];
 
   // split the urls into batches  
@@ -132,15 +140,48 @@ async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
     const responses = await Promise.all(promises);
 
     responses.forEach(response => {
-      if(response.status != 404){
+      if(response.status != 404 && response.status != 403){
+        var directoriesArrayReturned 
+        var isDirectoryInArray = false
+
+        chrome.storage.local.get(['DirectoryData']).then(directoriesArray => {  
+        directoriesArrayReturned =  directoriesArray['DirectoryData']
         
-        let directory = response.url.replace(url,"");
-        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+response.url+" n>"+recursiveDirectory+directory+"</a></div><div class='col'>"+type+"</div><div class='col'>"+response.status+"</div></div>";
-        if(type=="Directory" && response.status == 200 && directory != "/" && directory != "" && directory != "//" && directory != "index/"){
-          
-          findDirectories(response.url,directory);
-        }
-      }});
+
+        // check if directory is already saved  
+        if(directoriesArrayReturned.length == 0){
+          isDirectoryInArray = false
+        }else{
+          directoriesArrayReturned.map(obj=>{
+            
+          if(obj.url == response.url){
+            isDirectoryInArray =  true;
+            return true;
+          }
+            })
+          }
+
+
+           // if not already in storage => add to pannel and add to storage
+          if(isDirectoryInArray===false){
+
+            let directory = response.url.replace(url,"");
+            document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+response.url+">"+directory+"</a></div><div class='col'>"+type+"</div><div class='col'>"+response.status+"</div></div>";
+            const newDirectory = 
+            {
+              "name":recursiveDirectory+directory,
+              "url":response.url,  //unique
+              "code" :response.status,
+              "type" : type,
+              "complete": false
+            }
+
+            directoriesArrayReturned.push(newDirectory)
+            chrome.storage.local.set({"DirectoryData":directoriesArrayReturned})
+           } 
+
+        })
+}});
     
     loadedPercent = Math.round(((i*batchSize)*100)/numberOfPayloads);
     bar.style.width = loadedPercent.toString()+"%";  
@@ -149,34 +190,67 @@ async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
       console.log(err);
     }
   }
+
+  /* 
+    load memory
+     if complete -> null
+     if(!complete && type=="Directory" && response.status == 200 && directory != "/" && directory != "" && directory != "//" && directory != "index/")
+     {  
+         findDirectories()
+     }
+  */
+
+  chrome.storage.local.get(['DirectoryData']).then(directoriesArray => {
+
+    directoriesArrayReturned =  directoriesArray['DirectoryData']
+    directoriesArrayReturned.map(obj=>{
+      if(obj.complete == false && obj.type == "Directory" && obj.code == 200 && obj.name != "/" && obj.name != "" && obj.name != "//" && obj.name != "index/"){
+        findDirectories(obj.url)
+      }
+    })
+  })
   
 }
-
-
+function clearData(key){
+  chrome.storage.local.set({key: []}).then(res=>{
+    alert("done")
+  })
+}
 
 function directoryFuzz(){
 
-  /*
-   * 
-   * 1- get the url from the input
-   * 2- look for subdomains.txt
-   * 3- look for directory1.txt
-   * 4- look for directory2.txt
-   * 5- look for files.txt and backups1.txt and backups2.txt
-   */
-
-  
   const url = document.getElementById("directoryWebsite").value;
-
+  /* 
+  *   load memory
+  *   add values to pannel  
+  *   if non => createOne
+  */
   
-  //findSubDomains(url);
+  chrome.storage.local.get(['DirectoryData']).then(DirectoryData =>{
+      if (DirectoryData["DirectoryData"] === undefined) {
+        
+        chrome.storage.local.set({"DirectoryData": []}).then(res=>{
+          
+        })
+      } else {
+        console.log(DirectoryData["DirectoryData"])
+        DirectoryData["DirectoryData"].map(directory=>{
 
-  findDirectories(url,"");
- 
+          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+directory.url+">"+directory.url.replace(url,"")+"</a></div><div class='col'>"+directory.type+"</div><div class='col'>"+directory.code+"</div></div>";
+           
+        })
+
+      }
+
+  })
+  
+
+  //findSubDomains(url);
+  findDirectories(url);
 
 }
 
-async function findDirectories(url,directory){
+async function findDirectories(url){
     const urls=[] // an array of URLs to fetch
     const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json','./fuzz/backup1.json','./fuzz/backup2.json']
     //get the directory1.txt file
@@ -184,13 +258,11 @@ async function findDirectories(url,directory){
       
         await fetch(directoriesFiles[i]).then(response=>response.json().then(txt=>{
           
-          
           txt.forEach(payload => {
            
             let newUrl;
             if(url.endsWith("/") && payload.startsWith("/")){
               newUrl = url+payload.substring(1);
-            
       
             }else if(url.endsWith("/") && !payload.startsWith("/")){
             
@@ -208,7 +280,7 @@ async function findDirectories(url,directory){
       }
       console.log(urls.length);
       const batchSize = 50; // the number of requests to make at once
-      makeRequests(urls, batchSize,url,"Directory",directory);
+      makeRequests(urls, batchSize,url,"Directory");
 }
 
 
