@@ -9,32 +9,7 @@
  */
 
 
-// to dos
-   // add loading animation
-   // fix bug where subdomains are not being checked
-   //add to table values found and code
-
-
-let currentTabId = null;
-
-chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-  currentTabId = tabs[0].id;
-});
-
-chrome.tabs.onActivated.addListener(function(activeInfo) {
-  if (activeInfo.tabId !== currentTabId) {
-    // User switched tabs, pause extension execution
-    // You can use a flag to pause the execution of your extension
-  } else {
-    // User returned to original tab, resume extension execution
-    // You can use a flag to resume the execution of your extension
-  }
-});
-   chrome.runtime.onSuspend.addListener(function() {
-    // Perform any necessary cleanup here
-    return true; // Prevent the extension from being unloaded
-  });
-
+//================= Prepare UI =================
 
 // preventing consle from loggin 404
 window.addEventListener('fetch', event => {
@@ -101,6 +76,10 @@ function updatePannel(doc){
         // adds an event listener to the directoryFuzz button
         const directoryFuzzBtn = document.querySelector('#DirectoryFuzz');
         directoryFuzzBtn.addEventListener('click', directoryFuzz);
+        const clearDataBtn = document.querySelector('#DirectoryFuzzStop');
+        clearDataBtn.addEventListener('click', () => {clearData('DirectoryData')});
+
+        loadDirectoryData();
 
       }
 
@@ -116,9 +95,18 @@ if(doc == "infoDisc"){
     xhr.send();
 }
 }
+function getPathFromUrl(url) {
+  const parsedUrl = new URL(url);
+  const path = parsedUrl.pathname;
+  return path === '/' ? 'base url' : path;
+}
 
 
-async function makeRequests(urls, batchSize,url,type)  {
+
+//======================== Directory Fuzz ========================
+
+// This function is makes the thousands of requests to the server
+async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
   const batches = [];
 
   // split the urls into batches  
@@ -127,31 +115,34 @@ async function makeRequests(urls, batchSize,url,type)  {
     batches.push(urls.slice(i, i + batchSize));
   }
 
-  const bar = document.getElementById('Directory-progress');
+  const bar = document.getElementById('Directory-progress');//progress bar
  
   let loadedPercent = 0;
   let numberOfPayloads = urls.length;
 
   for (let i = 0; i < batches.length; i++) {
     
-    const batch = batches[i];
-    try{const promises = batch.map(url => fetch(url,{timeout: 5000}));
+    const batch = batches[i];//batch of urls
+    try{const promises = batch.map(url => fetch(url, {timeout: 2000}));
 
     const responses = await Promise.all(promises);
 
     responses.forEach(response => {
-      if(response.status != 404 && response.status != 403){
+
+      if(response.status != 404 && response.status != 403){// if the response is not a 404 or 403
         var directoriesArrayReturned 
         var isDirectoryInArray = false
 
         chrome.storage.local.get(['DirectoryData']).then(directoriesArray => {  
-        directoriesArrayReturned =  directoriesArray['DirectoryData']
+        directoriesArrayReturned =  directoriesArray['DirectoryData'] // get the array of directories from storage
         
 
         // check if directory is already saved  
         if(directoriesArrayReturned.length == 0){
           isDirectoryInArray = false
         }else{
+
+          // check if directory is already saved
           directoriesArrayReturned.map(obj=>{
             
           if(obj.url == response.url){
@@ -165,19 +156,19 @@ async function makeRequests(urls, batchSize,url,type)  {
            // if not already in storage => add to pannel and add to storage
           if(isDirectoryInArray===false){
 
-            let directory = response.url.replace(url,"");
+            let directory = getPathFromUrl(response.url) // get the directory from the url
             document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+response.url+">"+directory+"</a></div><div class='col'>"+type+"</div><div class='col'>"+response.status+"</div></div>";
             const newDirectory = 
             {
-              "name":recursiveDirectory+directory,
+              "name":directory,
               "url":response.url,  //unique
               "code" :response.status,
               "type" : type,
               "complete": false
             }
 
-            directoriesArrayReturned.push(newDirectory)
-            chrome.storage.local.set({"DirectoryData":directoriesArrayReturned})
+            directoriesArrayReturned.push(newDirectory) // add to array
+            chrome.storage.local.set({"DirectoryData":directoriesArrayReturned}) // add to storage
            } 
 
         })
@@ -187,72 +178,73 @@ async function makeRequests(urls, batchSize,url,type)  {
     bar.style.width = loadedPercent.toString()+"%";  
     
   }catch(err){
-      console.log(err);
+      //err.preventDefault()
+      {}
     }
   }
 
-  /* 
-    load memory
-     if complete -> null
-     if(!complete && type=="Directory" && response.status == 200 && directory != "/" && directory != "" && directory != "//" && directory != "index/")
-     {  
-         findDirectories()
-     }
-  */
+  
 
-  chrome.storage.local.get(['DirectoryData']).then(directoriesArray => {
+  // chrome.storage.local.get(['DirectoryData']).then(directoriesArray => {
 
-    directoriesArrayReturned =  directoriesArray['DirectoryData']
-    directoriesArrayReturned.map(obj=>{
-      if(obj.complete == false && obj.type == "Directory" && obj.code == 200 && obj.name != "/" && obj.name != "" && obj.name != "//" && obj.name != "index/"){
-        findDirectories(obj.url)
-      }
-    })
-  })
+  //   var directoriesArrayReturned =  directoriesArray['DirectoryData']
+  //   let found = false;
+  //   directoriesArrayReturned.forEach(obj => {
+  //     if (!found && obj.complete == false && obj.type == "Directory" && obj.code == 200 && obj.name != "/" && obj.name != "" && obj.name != "//" && obj.name != "index/") {
+  //       alert(obj.name);
+  //       found = true;
+  //       findDirectories(obj.url, obj.name);
+        
+  //     }
+  //   });
+  // })
   
 }
-function clearData(key){
-  chrome.storage.local.set({key: []}).then(res=>{
-    alert("done")
+
+// This function clears the data from the storage and the pannel
+function clearData(){
+  chrome.storage.local.set({"DirectoryData": []}).then(res=>{
+    document.getElementById("table").innerHTML = "";
   })
 }
+
+// This function loads the data from the storage and adds it to the pannel
+function loadDirectoryData(){
+
+  chrome.storage.local.get(['DirectoryData']).then(DirectoryData =>{
+    
+    if (DirectoryData["DirectoryData"] === undefined) {
+      
+      chrome.storage.local.set({"DirectoryData": []}).then(res=>{
+        
+      })
+    } else {
+      
+      DirectoryData["DirectoryData"].map(directory=>{
+        // add to pannel
+        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+directory.url+">"+directory.name+"</a></div><div class='col'>"+directory.type+"</div><div class='col'>"+directory.code+"</div></div>";
+         
+      })
+
+    }
+})
+
+}
+
 
 function directoryFuzz(){
 
   const url = document.getElementById("directoryWebsite").value;
-  /* 
-  *   load memory
-  *   add values to pannel  
-  *   if non => createOne
-  */
   
-  chrome.storage.local.get(['DirectoryData']).then(DirectoryData =>{
-      if (DirectoryData["DirectoryData"] === undefined) {
-        
-        chrome.storage.local.set({"DirectoryData": []}).then(res=>{
-          
-        })
-      } else {
-        console.log(DirectoryData["DirectoryData"])
-        DirectoryData["DirectoryData"].map(directory=>{
-
-          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+directory.url+">"+directory.url.replace(url,"")+"</a></div><div class='col'>"+directory.type+"</div><div class='col'>"+directory.code+"</div></div>";
-           
-        })
-
-      }
-
-  })
-  
-
-  //findSubDomains(url);
-  findDirectories(url);
+  findDirectories(url,"");
 
 }
 
-async function findDirectories(url){
+
+// This function tries to find hiden directories in the website
+async function findDirectories(url,recursiveDirectory){
     const urls=[] // an array of URLs to fetch
-    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json','./fuzz/backup1.json','./fuzz/backup2.json']
+    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json']
     //get the directory1.txt file
     for(let i = 0; i<directoriesFiles.length;i++){
       
@@ -278,54 +270,39 @@ async function findDirectories(url){
 
         })) 
       }
-      console.log(urls.length);
+      //update progress message
+      let directory = getPathFromUrl(url);  
+      document.getElementById('progress-message').innerHTML=directory;
       const batchSize = 50; // the number of requests to make at once
-      makeRequests(urls, batchSize,url,"Directory");
+      makeRequests(urls, batchSize,url,"Directory",recursiveDirectory);
 }
 
 
-async function findSubDomains(url){
 
-  const urls = []; // an array of URLs to fetch
-  //get the subdomains.txt file
-  // how to add timeout to fetch
-  fetch('./fuzz/subdomains.json').then(response=>response.json().then(data=>{
-    data.map(subdomain=>{
-      let newUrl;
-      if(url.startsWith("http://") || url.startsWith("https://")){
-        newUrl = url.replace("www",subdomain);
-      }else{
-        newUrl = subdomain+"."+url;
-      }
-      urls.push(newUrl);
-      
-    })
-    
-    const batchSize = 50; // the number of requests to make at once
-    makeRequests(urls, batchSize,url,"Subdomain");
-  
-  
-}));
-}
+
+
+//================= Information Disovery ===================
 
 //this function calls itself recursively to crawl the website and check for info disclosure
 var url;
 var visitedUrl = []; // this is to keep track of the visited urls so it doesnt crawl the same url twice
 var count = 0;
+
+
 // Function to fetch a webpage and crawl links
 async function fetchAndCrawl(newUrl) {
     
   // Fetch the webpage
        
     if(!url){
-    url = document.getElementById("website").value;
+    url = document.getElementById("website").value; //get the url from the input field
 
     infoDisclosure(url);
     }else{
       url = newUrl;
     }
-    const response = await fetch(url);
-    const text = await response.text();
+    const response = await fetch(url); //fetch the url
+    const text = await response.text(); //get the text from the response
   
     // Get the base URL to compare against
     const baseUrl = new URL(url);
@@ -354,7 +331,11 @@ async function fetchAndCrawl(newUrl) {
   }
 
 
-//function to check for info disclosure
+/*
+*   
+* Main function that loops through the regex and searches for them in the website
+* 
+*/
 async function infoDisclosure(val){
 
     // gets the value of the website input

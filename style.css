@@ -53,10 +53,25 @@ nav>div:hover{
     border: none;
     border-radius: 6px;
     color: white;
-    padding: 15px 32px;
+    padding: 15px 25px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
+}
+#DirectoryFuzzStop{
+    background-color: #ff5555;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+#DirectoryFuzzStop:hover{
+    cursor: pointer;
+    background-color: #f94a4ade;
 }
 .attackBtn:hover{
     cursor: pointer;
