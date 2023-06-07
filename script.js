@@ -11,12 +11,7 @@
 
 //================= Prepare UI =================
 
-// preventing consle from loggin 404
-window.addEventListener('fetch', event => {
-  if (event.response.status === 404) {
-    event.preventDefault();
-  }
-});
+
 //atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -62,7 +57,7 @@ function updatePannel(doc){
         // adds an event listener to the infoDisc button
         const infoDisc = document.querySelector('#infoDisc');
         infoDisc.addEventListener('click', fetchAndCrawl);
-
+        loadOptionsSelect()
 
       }else if(doc=="Directory Fuzz"){
         //gets container from directoryFuzz.html
@@ -201,6 +196,7 @@ async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
   
 }
 
+
 // This function clears the data from the storage and the pannel
 function clearData(){
   chrome.storage.local.set({"DirectoryData": []}).then(res=>{
@@ -282,6 +278,25 @@ async function findDirectories(url,recursiveDirectory){
 
 
 //================= Information Disovery ===================
+function loadOptionsSelect(){
+  const checkboxContainer = document.createElement('div');
+
+fetch('./reg.json').then(response=>response.json().then(txt=>{
+  for (key in txt){
+    const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.name = 'items';
+  checkbox.value = key;
+  const label = document.createElement('label');
+  label.textContent = key;
+  checkboxContainer.appendChild(checkbox);
+  checkboxContainer.appendChild(label);
+  };
+  let add = document.getElementById('infoSelect-body-grid');
+  add.appendChild(checkboxContainer);
+}))
+
+}
 
 //this function calls itself recursively to crawl the website and check for info disclosure
 var url;
