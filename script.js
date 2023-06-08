@@ -59,6 +59,15 @@ function updatePannel(doc){
         infoDisc.addEventListener('click', fetchAndCrawl);
         loadOptionsSelect()
 
+        const selectAllBtn = document.querySelector('#select-all');
+        selectAllBtn.addEventListener('click', selectAll);
+
+        const clearAllBtn= document.querySelector('#clear');
+        clearAllBtn.addEventListener('click', () => {clearAll()});
+
+        const infoSelectClose = document.querySelector('#infoSelect-close');
+        infoSelectClose.addEventListener('click', () => {closeInfoSelect()});
+
       }else if(doc=="Directory Fuzz"){
         //gets container from directoryFuzz.html
         
@@ -278,6 +287,26 @@ async function findDirectories(url,recursiveDirectory){
 
 
 //================= Information Disovery ===================
+
+function selectAll(){
+  const checkboxes = document.querySelectorAll('input[name="items"]');
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = true;
+  });
+}
+
+function clearAll(){
+
+  const checkboxes = document.querySelectorAll('input[name="items"]');
+  checkboxes.forEach((checkbox) => {
+  checkbox.checked = false;
+})};
+
+function closeInfoSelect(){
+  const infoSelect = document.getElementById('infoSelect');
+  infoSelect.style.display = "none";
+}
+
 function loadOptionsSelect(){
   const checkboxContainer = document.createElement('div');
 
@@ -289,8 +318,10 @@ fetch('./reg.json').then(response=>response.json().then(txt=>{
   checkbox.value = key;
   const label = document.createElement('label');
   label.textContent = key;
-  checkboxContainer.appendChild(checkbox);
-  checkboxContainer.appendChild(label);
+  const tempDiv = document.createElement('div');
+  tempDiv.appendChild(checkbox);
+  tempDiv.appendChild(label);
+  checkboxContainer.appendChild(tempDiv);
   };
   let add = document.getElementById('infoSelect-body-grid');
   add.appendChild(checkboxContainer);
