@@ -58,6 +58,17 @@ nav>div:hover{
     text-decoration: none;
     display: inline-block;
 }
+#config{
+    background-color: #41a8bf;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
 #DirectoryFuzzStop{
     background-color: #ff5555;
     font-weight: bold;
@@ -76,6 +87,18 @@ nav>div:hover{
 .attackBtn:hover{
     cursor: pointer;
     background-color: #24ae89;
+}
+#config:hover{
+    cursor: pointer;
+    background-color: #2f8ea3;
+}
+#btn-container{
+    width: 100%;
+    height: 10%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
 }
 #infoDiscContainer,#DirectoryFuzzContainer{
     width: 100%;
@@ -289,6 +312,7 @@ nav>div:hover{
 ::-webkit-scrollbar-thumb:hover{
     background: #8be9fd;
 }
+
 
 #table{
     width: 100%;

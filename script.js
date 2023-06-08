@@ -71,6 +71,9 @@ function updatePannel(doc){
         const infoSelectClose = document.querySelector('#infoSelect-close');
         infoSelectClose.addEventListener('click', () => {closeInfoSelect()});
 
+        const showConfig = document.querySelector('#config');
+        showConfig.addEventListener('click', () => {showSettings()});
+
       }else if(doc=="Directory Fuzz"){
         //gets container from directoryFuzz.html
         
@@ -292,6 +295,12 @@ async function findDirectories(url,recursiveDirectory){
 //================= Information Disovery ===================
 
 //this function selects all the checkboxes in infoslect
+
+function showSettings(){
+  document.getElementById("infoSelect").style.display = "flex";
+  
+}
+
 function selectAll(){
   const checkboxes = document.querySelectorAll('input[name="items"]');
   checkboxes.forEach((checkbox) => {
@@ -456,6 +465,9 @@ async function infoDisclosure(val){
                     }
               
               }
+              count++;
+              document.getElementById("ulr-done").innerHTML = "crawlled "+count+" pages";
+              document.getElementById("ulr-left").innerHTML =  visitedUrl.length+" pages left";
            }))
 
             
