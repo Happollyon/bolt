@@ -65,6 +65,9 @@ function updatePannel(doc){
         const clearAllBtn= document.querySelector('#clear');
         clearAllBtn.addEventListener('click', () => {clearAll()});
 
+        const savebtn = document.querySelector('#save');
+        savebtn.addEventListener('click', () => {save()});
+
         const infoSelectClose = document.querySelector('#infoSelect-close');
         infoSelectClose.addEventListener('click', () => {closeInfoSelect()});
 
@@ -288,6 +291,7 @@ async function findDirectories(url,recursiveDirectory){
 
 //================= Information Disovery ===================
 
+//this function selects all the checkboxes in infoslect
 function selectAll(){
   const checkboxes = document.querySelectorAll('input[name="items"]');
   checkboxes.forEach((checkbox) => {
@@ -295,6 +299,7 @@ function selectAll(){
   });
 }
 
+//this function unselects all the checkboxes in infoslect
 function clearAll(){
 
   const checkboxes = document.querySelectorAll('input[name="items"]');
@@ -302,6 +307,23 @@ function clearAll(){
   checkbox.checked = false;
 })};
 
+//this function saves the selected options in infoslect
+// not tested yet
+
+function save(){
+  const checkboxes = document.querySelectorAll('input[name="items"]');
+  const selectedItems = [];
+  checkboxes.forEach((checkbox) => {
+    if (checkbox.checked) {
+      selectedItems.push(checkbox.value);
+    }
+  });
+  chrome.storage.local.set({"selectedItems": selectedItems}).then(res=>{
+    closeInfoSelect();
+  })
+}
+
+//this function closes the info select pannel
 function closeInfoSelect(){
   const infoSelect = document.getElementById('infoSelect');
   infoSelect.style.display = "none";
@@ -309,23 +331,30 @@ function closeInfoSelect(){
 
 function loadOptionsSelect(){
   const checkboxContainer = document.createElement('div');
+  const savedoptions = chrome.storage.local.get(['selectedItems']).then(res=>{
+    fetch('./reg.json').then(response=>response.json().then(txt=>{
+      for (key in txt){
+        const checkbox = document.createElement('input');
+        try{if(res['selectedItems'].includes(key)){
+          checkbox.checked = true;
+        }}catch(err){
+          checkbox.checked = false;
+        }
+        checkbox.type = 'checkbox';
+        checkbox.name = 'items';
+        checkbox.value = key;
+        const label = document.createElement('label');
+        label.textContent = key;
+        const tempDiv = document.createElement('div');
+        tempDiv.appendChild(checkbox);
+        tempDiv.appendChild(label);
+        checkboxContainer.appendChild(tempDiv);
+      };
+      let add = document.getElementById('infoSelect-body-grid');
+      add.appendChild(checkboxContainer);
+    }))
+  })
 
-fetch('./reg.json').then(response=>response.json().then(txt=>{
-  for (key in txt){
-    const checkbox = document.createElement('input');
-  checkbox.type = 'checkbox';
-  checkbox.name = 'items';
-  checkbox.value = key;
-  const label = document.createElement('label');
-  label.textContent = key;
-  const tempDiv = document.createElement('div');
-  tempDiv.appendChild(checkbox);
-  tempDiv.appendChild(label);
-  checkboxContainer.appendChild(tempDiv);
-  };
-  let add = document.getElementById('infoSelect-body-grid');
-  add.appendChild(checkboxContainer);
-}))
 
 }
 
@@ -383,16 +412,16 @@ async function fetchAndCrawl(newUrl) {
 * 
 */
 async function infoDisclosure(val){
-
+    
     // gets the value of the website input
     //let val = document.getElementById("website").value;
-   
-    if(val != null){
+     chrome.storage.local.get(['selectedItems']).then(async res=>{
+      if(val != null){
         try {
 
             //fetches the website
-            const response = await fetch(val,{mode:'no-cors'});
-            const body = await response.text();
+            const response =  await fetch(val,{mode:'no-cors'});
+            const body =  await response.text();
             
             
             //gets the RegEx from the json file
@@ -406,20 +435,22 @@ async function infoDisclosure(val){
                       //creates a regex object  
                       const regex = new RegExp(data[key], 'g');
                       let match;
-
+                      
                       //searches for the regex in the website
                       while ((match = regex.exec(body)) !== null) {
                         // this finds the last item in the path so i can display it in the table
                         const pathParts = val.split('/');
                         const lastPart = pathParts[pathParts.length - 1];
+                        
 
                         //this is to limit the length of the match to 100 characters
                         match[0] = match[0].substring(0,100);
                         match[0] = match[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");//this is to replace the < and > with html entities so it doesnt get rendered as html
-                       
+                        if(res['selectedItems'].includes(key)){
+                          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+val+" n>"+lastPart+"</a></div><div class='col'>"+key+"</div><div class='col'>"+match[0]+"</div></div>";
+                        }
                        //this adds the data to the table
-                        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+val+" n>"+lastPart+"</a></div><div class='col'>"+key+"</div><div class='col'>"+match[0]+"</div></div>";
-
+                        
                        
                       }
                     }
@@ -432,4 +463,6 @@ async function infoDisclosure(val){
             console.error(error);
           }
     }
+    })
+   
 }
