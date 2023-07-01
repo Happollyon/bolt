@@ -62,7 +62,16 @@ Note: Please ensure that you have the necessary permissions to conduct pentestin
 
 ## Usage
 
-Explain how to use your project. Provide examples or code snippets to demonstrate its functionality. You can also include screenshots or gifs to showcase the project in action.
+- Information disclosure.
+    - paste the base url you want the tool to crawl and search for senstive information. 
+      _I.e. www.testme.com_
+- Directory Fuzzing
+    - paste the base url you want the tool to probe for hidden directories. 
+      _I.e. www.testme.com_
+ - Path transversal 
+    - paste the endpoint you believe it might be vulnerabel. _I.e. www.testme.com/images/filename=_
+ - Methodology
+    - Upon accessing this screen, you will observe that it has been pre-filled with a commonly used methodology. It consists of suggested steps to follow and possible payloads to test for various vulnerabilities such as SQL injection, command injection, and more. Additionally, I have included instructions for your convenience. Feel free to customize and rearrange the content as needed, or if you prefer, you can delete everything and create your own methodology from scratch. The flexibility provided allows you to tailor the methodology according to your specific testing requirements.  
 
 ## Contributing
 
