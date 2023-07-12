@@ -91,31 +91,93 @@ function updatePannel(doc){
 
         loadDirectoryData();
 
+      }else if(doc=="Path Transversal"){
+        const pathTransversalContainer = div.querySelector('#pathTransversalContainer');
+        const pannel = document.querySelector('#pannel'); // gets the pannel
+        pannel.innerHTML = ""; // clears the pannel
+        pannel.appendChild(pathTransversalContainer); //append the pathTransversalContainer to the pannel
+
+        //=====add event listeners to the buttons=====
+        const scanButton = document.querySelector('#scanButton');
+        scanButton.addEventListener('click', scan);
       }
 
     }
-};
+  };
 
-// if the inner html of the nav button is infoDisc, it fetches the infoDisc.html file and adds it to the pannel
-if(doc == "infoDisc"){
-    xhr.open('GET', 'infoDisc.html');
-    xhr.send();
-}else if(doc=="Directory Fuzz"){
-    xhr.open('GET', 'directoryFuzz.html');
-    xhr.send();
+  // if the inner html of the nav button is infoDisc, it fetches the infoDisc.html file and adds it to the pannel
+  if(doc == "infoDisc"){
+      xhr.open('GET', 'infoDisc.html');
+      xhr.send();
+  }else if(doc=="Directory Fuzz"){
+      xhr.open('GET', 'directoryFuzz.html');
+      xhr.send();
+  }else if(doc=="Path Transversal"){
+      xhr.open('GET', 'pathTransversal.html');
+      xhr.send();
+  }
 }
-}
+// This function gets the path from the url
 function getPathFromUrl(url) {
-  const parsedUrl = new URL(url);
-  const path = parsedUrl.pathname;
-  return path === '/' ? 'base url' : path;
+  const parsedUrl = new URL(url);//parse the url
+  const path = parsedUrl.pathname;//get the path from the url
+  return path === '/' ? 'base url' : path; // if the path is / return base url else return the path
 }
 
+//===============Path transversal===================
+async function scan(){
+    const url = document.getElementById("pathTransversalWebsite").value;
+    const payloads = [];
+    const payloadsFiles = ['./fuzz/directoryTransversal.json']
 
+    //query the payloads files
+    for(let i = 0; i<payloadsFiles.length;i++){
+      await fetch(payloadsFiles[i]).then(response=>response.json().then(txt=>{
+        txt.forEach(payload => {
+          payloads.push(payload);
+        })
+
+      }))
+    }
+    
+
+    // calls Makes transversal requests
+    makeTransversalRequests(payloads,url,50);
+
+}
+// This function  makes the thousands of requests to the server and needs to be brokent down into smaller payloads
+
+async function makeTransversalRequests(payloads,url,batchsize)  {
+  const batches = [];
+  for (let i = 0; i < payloads.length; i += batchsize) {
+    batches.push(payloads.slice(i, i + batchsize));
+  }
+
+  for(let i = 0;i<batches.length;i++){
+    const batch = batches[i];
+    try{
+      const promises = batch.map(payload => fetch(url+payload, {timeout: 2000}));
+      const responses = await Promise.all(promises);
+      responses.forEach(response => {
+        if(response.status != 404 && response.status != 403){
+          responseURL = response.url;
+          responseStatus = response.status;
+
+          response.text().then(response=>{
+          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+responseURL+">"+responseURL+"</a></div><div class='col'>"+response.length+"</div><div class='col'>"+responseStatus+"</div></div>";
+          })}
+      });
+      }
+    catch(err){
+      console.log(err);
+    }
+  }
+
+}
 
 //======================== Directory Fuzz ========================
 
-// This function is makes the thousands of requests to the server
+// This function  makes the thousands of requests to the server
 async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
   const batches = [];
 
