@@ -1,0 +1,238 @@
+{
+    "webMound": {
+        "infoDisclosure": [
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            }
+        ],
+        "directoryFuzz": [
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            }
+        ],
+        "pathTransversal": [
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            }
+        ],
+        "metodology": [
+            {
+                "sqli": {
+                    "complete": false,
+                    "body": [
+                        {
+                            "type": "task",
+                            "complete": true,
+                            "name": "run sql.py"
+                        },
+                        {
+                            "name": "commands",
+                            "text": "Lorem ipsum dolor sit amet, <b>consectetur<b> adipiscing elitj Sed porta nisi vitae <i>maximus bibendum<i>. Curabitur ante erat, suscipit vitae scelerisque at."
+                        },
+                        {
+                            "name": "twitte Threads with pyloads",
+                            "text": "<a hfref='twitter.com'>union<a><a href='twitter.com'>sleep<a><a hfr='twitter.com'>dump<a>"
+                        },
+                        {
+                            "type": "task",
+                            "complete": false,
+                            "name": "sleep attack"
+                        }
+                    ]
+                }
+            },
+            {
+                "xss": {
+                    "complete": false,
+                    "body": []
+                }
+            }
+        ]
+    },
+    "pawn.ie": {
+        "infoDisclosure": [
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            }
+        ],
+        "directoryFuzz": [
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            }
+        ],
+        "pathTransversal": [
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            },
+            {
+                "name": "directory",
+                "url": "response.url",
+                "code": "response.status",
+                "type": "type",
+                "complete": false
+            }
+        ],
+        "metodology": [
+            {
+                "sqli": {
+                    "complete": false,
+                    "body": [
+                        {
+                            "type": "task",
+                            "complete": true,
+                            "name": "run sql.py"
+                        },
+                        {
+                            "name": "commands",
+                            "text": "Lorem ipsum dolor sit amet, <b>consectetur<b> adipiscing elitj Sed porta nisi vitae <i>maximus bibendum<i>. Curabitur ante erat, suscipit vitae scelerisque at."
+                        },
+                        {
+                            "name": "twitte Threads with pyloads",
+                            "text": "<a hfref='twitter.com'>union<a><a href='twitter.com'>sleep<a><a hfr='twitter.com'>dump<a>"
+                        },
+                        {
+                            "type": "task",
+                            "complete": false,
+                            "name": "sleep attack"
+                        }
+                    ]
+                }
+            },
+            {
+                "xss": {
+                    "complete": false,
+                    "body": []
+                }
+            }
+        ]
+    }
+}

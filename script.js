@@ -14,6 +14,8 @@
 
 //atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
+    updatePannel("Targets")
+
     
     const navBtn = document.querySelectorAll('.navBtn');
     navBtn.forEach(navBtn =>navBtn.addEventListener('click',(event)=>{
@@ -100,6 +102,12 @@ function updatePannel(doc){
         //=====add event listeners to the buttons=====
         const scanButton = document.querySelector('#scanButton');
         scanButton.addEventListener('click', scan);
+      }else if(doc == "Targets"){
+        const targetsContainer = div.querySelector('#targetsContainer');
+        const pannel = document.querySelector('#pannel'); // gets the pannel
+        pannel.innerHTML = ""; // clears the pannel
+        pannel.appendChild(targetsContainer); //append the pathTransversalContainer to the pannel
+        
       }
 
     }
@@ -115,6 +123,9 @@ function updatePannel(doc){
   }else if(doc=="Path Transversal"){
       xhr.open('GET', 'pathTransversal.html');
       xhr.send();
+  }else if(doc=="Targets"){
+    xhr.open('GET', 'target.html');
+    xhr.send();
   }
 }
 // This function gets the path from the url
