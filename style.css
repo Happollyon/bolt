@@ -81,6 +81,8 @@ nav>div:hover{
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
+   
+   
 }
 .targetItem:nth-child(odd){
     background-color: #44475a;
@@ -89,8 +91,11 @@ nav>div:hover{
     background-color: #282a36;
 }
 .targetName{
-    width: 80%;
+    
+    left:1%;
+    width: 50%;
     height: 50%;
+    margin-right: 30%;
     display: flex;
     flex-direction: row;
     align-items: center;   
@@ -98,6 +103,8 @@ nav>div:hover{
 
 .targetDelete{
     height: 30%;
+    justify-self: flex-end;
+    margin-right: 0;
     aspect-ratio: 1;
     display: flex;
     flex-direction: row;
@@ -140,6 +147,11 @@ nav>div:hover{
 }
 .targetToggle-selected:hover{
     background-color: #636a93;
+}
+.dragging{
+    opacity: 0.5;
+    cursor: move;       
+  
 }
 /*InfoDiscContainer*/
 .attackBtn{

@@ -103,16 +103,59 @@ function updatePannel(doc){
         const scanButton = document.querySelector('#scanButton');
         scanButton.addEventListener('click', scan);
       }else if(doc == "Targets"){
+
         const targetsContainer = div.querySelector('#targetsContainer');
         const pannel = document.querySelector('#pannel'); // gets the pannel
         pannel.innerHTML = ""; // clears the pannel
         pannel.appendChild(targetsContainer); //append the pathTransversalContainer to the pannel
+        
+        //=====implement draggin and droping of items=====
+        const sortableList = document.querySelector('#targetsContainer');
+        const dragbleItems = document.querySelectorAll('.targetItem');
+
+        //adding event listeners to the dragble items
+        dragbleItems.forEach(dragbleItem => {
+
+          dragbleItem.addEventListener('dragstart', () => {
+            // if the item is being dragged, add the dragging class
+            setTimeout(() =>  dragbleItem.classList.add('dragging'), 0);
+
+          });
+
+          dragbleItem.addEventListener('dragend', () => {
+            // if the item is not being dragged, remove the dragging class
+            dragbleItem.classList.remove('dragging');
+          });
+        })
+
+        //adding event listeners to the sortable list
+        const initSortableList = (e) => {
+          // if the item is being dragged, prevent the default action
+          e.preventDefault();
+          const draggingItem = document.querySelector(".dragging"); // Getting the currently dragging item
+
+          // Getting all items except currently dragging and making array of them
+          let siblings = [...sortableList.querySelectorAll(".targetItem:not(.dragging)")];
+          // Finding the sibling after which the dragging item should be placed
+          let nextSibling = siblings.find(sibling => {
+            // Moving the dragging item only when the cursor is above 50% of the sibling element
+              return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
+          });
+          
+          // Inserting the dragging item before the found sibling
+          sortableList.insertBefore(draggingItem, nextSibling);
+      }
+      //adding event listeners to the sortable list
+      sortableList.addEventListener("dragover", initSortableList);
+      sortableList.addEventListener("dragenter", e => e.preventDefault());
+        
         
       }
 
     }
   };
 
+  
   // if the inner html of the nav button is infoDisc, it fetches the infoDisc.html file and adds it to the pannel
   if(doc == "infoDisc"){
       xhr.open('GET', 'infoDisc.html');
@@ -128,6 +171,23 @@ function updatePannel(doc){
     xhr.send();
   }
 }
+
+function getDragAfterElement(dragbleItem, y) {
+  const draggableElements = [...targetsContainer.querySelectorAll('.targeItem:not(.dragging)')];
+
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
 // This function gets the path from the url
 function getPathFromUrl(url) {
   const parsedUrl = new URL(url);//parse the url
