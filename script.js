@@ -16,7 +16,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     updatePannel("Targets")
 
-    
+    chrome.storage.local.get(null, function(items) {
+      console.log(items);
+    });
     const navBtn = document.querySelectorAll('.navBtn');
     navBtn.forEach(navBtn =>navBtn.addEventListener('click',(event)=>{
         select(event.target); // if you click a nav butoon you call the select function and pass the button as a parameter
@@ -148,7 +150,10 @@ function updatePannel(doc){
       //adding event listeners to the sortable list
       sortableList.addEventListener("dragover", initSortableList);
       sortableList.addEventListener("dragenter", e => e.preventDefault());
-        
+
+      //=====add event listeners to the buttons=====
+      const addTargetButton = document.querySelector('#addTargetButton');
+      addTargetButton.addEventListener('click', addTargetItem);  
         
       }
 
@@ -172,21 +177,69 @@ function updatePannel(doc){
   }
 }
 
-function getDragAfterElement(dragbleItem, y) {
-  const draggableElements = [...targetsContainer.querySelectorAll('.targeItem:not(.dragging)')];
+//================= Targets =================
 
-  return draggableElements.reduce((closest, child) => {
-    const box = child.getBoundingClientRect();
-    const offset = y - box.top - box.height / 2;
+// targetsUI
+// This function adds a new target item to the pannel and to the storage
+function addTargetItem(){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+      if(targetList['TargetsList'] === undefined){
 
-    if (offset < 0 && offset > closest.offset) {
-      return { offset: offset, element: child };
-    } else {
-      return closest;
-    }
+        chrome.storage.local.set({"TargetsList": []}).then(res=>{
+          
+          addTargetItem();
 
-  }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
+        })}else{
+          let targetListReturned = targetList['TargetsList']
+          targetListReturned.push({"name":"new target","selected":false})
+          chrome.storage.local.set({"TargetsList": targetListReturned})
+          const targetItem = createTargetItem(targetListReturned[targetListReturned.length-1])
+          document.getElementById("targetsContainer").appendChild(targetItem)
+        }
+   })
+   // add to storage
+
+ }
+ function createTargetItem(target){
+    // create the target item and add the classes
+    const targetItem = document.createElement('div')
+    targetItem.classList.add('targetItem');
+    targetItem.draggable = true;
+
+    // create toggle switch and add classes
+    let targetToggle = document.createElement('div')
+    targetToggle.classList.add('targetToggle');
+
+    // create the target name and add classes and innerHTML
+    let targetName = document.createElement('div')
+    targetName.classList.add('targetName')
+    targetName.innerHTML = target.name;
+
+    // create the target delete button and add classes and innerHTML
+    let targetItemDelete = document.createElement('div')
+    targetItemDelete.classList.add('targetDelete')
+    targetItemDelete.innerHTML = "X";
+
+    // build the target item by appending the elements to the target item
+    targetItem.appendChild(targetToggle);
+    targetItem.appendChild(targetName);
+    targetItem.appendChild(targetItemDelete);
+
+    // add event listeners to the target item
+
+        targetItem.addEventListener('dragstart', () => {
+          // if the item is being dragged, add the dragging class
+          setTimeout(() =>  targetItem.classList.add('dragging'), 0);
+
+        });
+
+        targetItem.addEventListener('dragend', () => {
+          // if the item is not being dragged, remove the dragging class
+          targetItem.classList.remove('dragging');
+        });
+
+    return targetItem;
+  }
 
 // This function gets the path from the url
 function getPathFromUrl(url) {
