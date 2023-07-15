@@ -110,7 +110,7 @@ function updatePannel(doc){
         const pannel = document.querySelector('#pannel'); // gets the pannel
         pannel.innerHTML = ""; // clears the pannel
         pannel.appendChild(targetsContainer); //append the pathTransversalContainer to the pannel
-        
+        loadTargets();
         //=====implement draggin and droping of items=====
         const sortableList = document.querySelector('#targetsContainer');
         const dragbleItems = document.querySelectorAll('.targetItem');
@@ -200,7 +200,8 @@ function addTargetItem(){
    // add to storage
 
  }
- function createTargetItem(target){
+ // this functions creates a target item and returns it
+function createTargetItem(target){
     // create the target item and add the classes
     const targetItem = document.createElement('div')
     targetItem.classList.add('targetItem');
@@ -240,6 +241,23 @@ function addTargetItem(){
 
     return targetItem;
   }
+// this function loads the targets from the storage and adds them targetsContainer
+function loadTargets(){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    if(targetList['TargetsList'] === undefined){
+
+      chrome.storage.local.set({"TargetsList": []}).then(res=>{
+        loadTargets();
+      })}else{
+        let targetListReturned = targetList['TargetsList']
+        targetListReturned.forEach(target => {
+          const targetItem = createTargetItem(target)
+          document.getElementById("targetsContainer").appendChild(targetItem)
+        });
+      }
+ })
+
+}
 
 // This function gets the path from the url
 function getPathFromUrl(url) {
