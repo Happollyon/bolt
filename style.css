@@ -133,7 +133,7 @@ nav>div:hover{
     cursor: pointer;
     background-color: #636a93;
 }
-.targetToggle-selected{
+.targetToggleOn{
     height: 30%;
     aspect-ratio: 1;
     display: flex;
@@ -145,7 +145,7 @@ nav>div:hover{
     background-color: #1a9776;
     cursor: pointer;
 }
-.targetToggle-selected:hover{
+.targetToggleOn:hover{
     background-color: #636a93;
 }
 .dragging{

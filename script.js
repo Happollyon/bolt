@@ -40,7 +40,8 @@ function select(element){
 }
 
 
-function updatePannel(doc){
+function updatePannel(doc)
+{
   const xhr = new XMLHttpRequest();
   xhr.onload = () => {
     
@@ -114,14 +115,13 @@ function updatePannel(doc){
         //=====implement draggin and droping of items=====
         const sortableList = document.querySelector('#targetsContainer');
         const dragbleItems = document.querySelectorAll('.targetItem');
-        const dragbleItemsDelete = document.querySelectorAll('.targetDelete');
-        console.log(dragbleItemsDelete.length)
-        
+      
         //adding event listeners to the dragble items
         dragbleItems.forEach(dragbleItem => {
 
           dragbleItem.addEventListener('dragstart', () => {
             // if the item is being dragged, add the dragging class
+            alert("drag started")
             setTimeout(() =>  dragbleItem.classList.add('dragging'), 0);
 
           });
@@ -129,6 +129,16 @@ function updatePannel(doc){
           dragbleItem.addEventListener('dragend', () => {
             // if the item is not being dragged, remove the dragging class
             dragbleItem.classList.remove('dragging');
+            alert("drag ended")
+            const nextSibling = dragbleItem.nextElementSibling;
+            const nextSiblingId = nextSibling.getAttribute("id");
+            const prevSibling = dragbleItem.previousElementSibling;
+            const prevSiblingId = prevSibling.getAttribute("id");
+            const targetId = dragbleItem.getAttribute("id");
+            chrome.storage.local.get(['TargetsList']).then(targetList => {
+              let targetListReturned = targetList['TargetsList']
+              alert(targetId)
+            });
           });
         })
 
@@ -145,13 +155,11 @@ function updatePannel(doc){
             // Moving the dragging item only when the cursor is above 50% of the sibling element
               return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
           });
-          
           // Inserting the dragging item before the found sibling
-          sortableList.insertBefore(draggingItem, nextSibling);
-      }
+          sortableList.insertBefore(draggingItem, nextSibling)}
       //adding event listeners to the sortable list
       sortableList.addEventListener("dragover", initSortableList);
-      sortableList.addEventListener("dragenter", e => e.preventDefault());
+      sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
 
       //=====add event listeners to the buttons=====
       const addTargetButton = document.querySelector('#addTargetButton');
@@ -180,8 +188,6 @@ function updatePannel(doc){
 }
 
 //================= Targets =================
-
-// 
 
 // This function adds a new target item to the pannel and to the storage
 function addTargetItem(){
@@ -220,7 +226,9 @@ function createTargetItem(target){
     // create toggle switch and add classes
     let targetToggle = document.createElement('div')
     targetToggle.classList.add('targetToggle');
-
+    if(target.selected){
+      targetToggle.classList.add('targetToggleOn');
+    }
     // create the target name and add classes and innerHTML
     let targetName = document.createElement('div')
     targetName.classList.add('targetName')
@@ -248,13 +256,46 @@ function createTargetItem(target){
         targetItem.addEventListener('dragend', () => {
           // if the item is not being dragged, remove the dragging class
           targetItem.classList.remove('dragging');
+          const targetId = targetItem.getAttribute("id");
+
+          let allTargets = document.querySelectorAll('.targetItem');
+          let targetList = [];
+          allTargets.forEach(target => {
+            targetList.push(target.getAttribute("id"))
+          });
+          let targetIndex = targetList.indexOf(targetId);
+          console.log(targetList)
+          chrome.storage.local.get(['TargetsList']).then(targetList => {
+            let targetListReturned = targetList['TargetsList']
+            targetListReturned.forEach((target,index) => {
+              if(target.id == targetId){
+                targetListReturned.splice(index,1);
+                targetListReturned.splice(targetIndex,0,target);
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+              }
+            })
+            
+           
+          });
+
         });
         
         //adding event listeners to the delete buttons
-        
-    targetItemDelete.addEventListener('click', () => { 
-      console.log(targetItemDelete.id)
-      deleteTargetItem(targetItemDelete.parentElement) });
+        targetItemDelete.addEventListener('click', () => { 
+          deleteTargetItem(targetItemDelete.parentElement) 
+        });
+        //adding event listeners to the target name
+        targetName.addEventListener("input", function() {
+          
+          updateTargetName(targetName.parentElement,targetName.innerHTML)
+        });
+
+        targetToggle.addEventListener("click", function() {
+          toggleTarget(targetToggle.parentElement)
+          let allToggles = document.querySelectorAll('.targetToggle');
+          allToggles.forEach(toggle => { toggle.classList.remove("targetToggleOn")});
+          targetToggle.classList.toggle("targetToggleOn");
+        });
 
     return targetItem;
   }
@@ -288,6 +329,37 @@ function deleteTargetItem(targetItem){
           }
         });
       })
+}
+// this function toggles the target item in the storage and in the pannel
+function toggleTarget(targetItem){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.id == targetItem.id){
+        target.selected = !target.selected
+        chrome.storage.local.set({"TargetsList": targetListReturned})
+        
+      }else if(target.selected){
+        target.selected = false
+        chrome.storage.local.set({"TargetsList": targetListReturned})
+      }
+
+    })
+  })
+
+}
+// this function updates the target name in the storage and in the pannel
+function updateTargetName(targetItem,targetName){
+chrome.storage.local.get(['TargetsList']).then(targetList => {
+  let targetListReturned = targetList['TargetsList']
+  targetListReturned.forEach((target,index) => {
+    if(target.id == targetItem.id){
+      target.name = targetName
+      chrome.storage.local.set({"TargetsList": targetListReturned})
+    }
+
+  })
+})
 }
 
 // This function gets the path from the url
@@ -712,4 +784,5 @@ async function infoDisclosure(val){
     }
     })
    
+  
 }
