@@ -114,7 +114,9 @@ function updatePannel(doc){
         //=====implement draggin and droping of items=====
         const sortableList = document.querySelector('#targetsContainer');
         const dragbleItems = document.querySelectorAll('.targetItem');
-
+        const dragbleItemsDelete = document.querySelectorAll('.targetDelete');
+        console.log(dragbleItemsDelete.length)
+        
         //adding event listeners to the dragble items
         dragbleItems.forEach(dragbleItem => {
 
@@ -179,7 +181,8 @@ function updatePannel(doc){
 
 //================= Targets =================
 
-// targetsUI
+// 
+
 // This function adds a new target item to the pannel and to the storage
 function addTargetItem(){
   chrome.storage.local.get(['TargetsList']).then(targetList => {
@@ -191,7 +194,7 @@ function addTargetItem(){
 
         })}else{
           let targetListReturned = targetList['TargetsList']
-          targetListReturned.push({"name":"new target","selected":false})
+          targetListReturned.push({"name":"new target","selected":false,"id":generateUUID()})
           chrome.storage.local.set({"TargetsList": targetListReturned})
           const targetItem = createTargetItem(targetListReturned[targetListReturned.length-1])
           document.getElementById("targetsContainer").appendChild(targetItem)
@@ -200,11 +203,18 @@ function addTargetItem(){
    // add to storage
 
  }
+ // this function generates a unique id
+ function generateUUID() {
+  const timestamp = new Date().getTime(); // get the current time
+  const random = Math.floor(Math.random() * 1000000);// get a random number
+  return `${timestamp}-${random}`;// return the timestamp and the random number
+}
  // this functions creates a target item and returns it
 function createTargetItem(target){
     // create the target item and add the classes
     const targetItem = document.createElement('div')
     targetItem.classList.add('targetItem');
+    targetItem.id = target.id;
     targetItem.draggable = true;
 
     // create toggle switch and add classes
@@ -214,6 +224,7 @@ function createTargetItem(target){
     // create the target name and add classes and innerHTML
     let targetName = document.createElement('div')
     targetName.classList.add('targetName')
+    targetName.contentEditable = true;
     targetName.innerHTML = target.name;
 
     // create the target delete button and add classes and innerHTML
@@ -238,6 +249,12 @@ function createTargetItem(target){
           // if the item is not being dragged, remove the dragging class
           targetItem.classList.remove('dragging');
         });
+        
+        //adding event listeners to the delete buttons
+        
+    targetItemDelete.addEventListener('click', () => { 
+      console.log(targetItemDelete.id)
+      deleteTargetItem(targetItemDelete.parentElement) });
 
     return targetItem;
   }
@@ -257,6 +274,20 @@ function loadTargets(){
       }
  })
 
+}
+// this function deletes a target item from the pannel and from the storage
+function deleteTargetItem(targetItem){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+        //
+        let targetListReturned = targetList['TargetsList']// get the target list from storage
+        targetListReturned.forEach((target,index) => {// loop through the target list
+          if(target.id == targetItem.id){ // if the target id is the same as the target item id
+            targetListReturned.splice(index,1);// remove the target from the target list
+            chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
+            targetItem.remove();// remove the target item from the pannel
+          }
+        });
+      })
 }
 
 // This function gets the path from the url
