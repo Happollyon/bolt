@@ -256,22 +256,24 @@ function createTargetItem(target){
         targetItem.addEventListener('dragend', () => {
           // if the item is not being dragged, remove the dragging class
           targetItem.classList.remove('dragging');
-          const targetId = targetItem.getAttribute("id");
+          const targetId = targetItem.getAttribute("id");// get the id of the target item
 
-          let allTargets = document.querySelectorAll('.targetItem');
-          let targetList = [];
+          // try to find the target item in the target list and move it to the new position in the local.storage
+          let allTargets = document.querySelectorAll('.targetItem');// get all the target items
+          let targetList = [];// create an array to store the target items
           allTargets.forEach(target => {
-            targetList.push(target.getAttribute("id"))
+            targetList.push(target.getAttribute("id"))// add the target item id to the array
           });
-          let targetIndex = targetList.indexOf(targetId);
-          console.log(targetList)
+          let targetIndex = targetList.indexOf(targetId);// find the indext the target being dragged holds at the moment
+          
+          // change the position of the target in the storage to the new position the user dragged it to
           chrome.storage.local.get(['TargetsList']).then(targetList => {
             let targetListReturned = targetList['TargetsList']
             targetListReturned.forEach((target,index) => {
               if(target.id == targetId){
-                targetListReturned.splice(index,1);
-                targetListReturned.splice(targetIndex,0,target);
-                chrome.storage.local.set({"TargetsList": targetListReturned})
+                targetListReturned.splice(index,1);// remove the target from the target list
+                targetListReturned.splice(targetIndex,0,target);// add the target to the new position
+                chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
               }
             })
             
