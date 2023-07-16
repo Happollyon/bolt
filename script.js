@@ -76,8 +76,13 @@ function updatePannel(doc)
         const infoSelectClose = document.querySelector('#infoSelect-close');
         infoSelectClose.addEventListener('click', () => {closeInfoSelect()});
 
+        const infoDiscClear =document.querySelector('#infoDiscClear');
+        infoDiscClear.addEventListener('click', () => {clearInfoDiscData()});
+
         const showConfig = document.querySelector('#config');
         showConfig.addEventListener('click', () => {showSettings()});
+
+        loadInfoDisclosureData();
 
       }else if(doc=="Directory Fuzz"){
         //gets container from directoryFuzz.html
@@ -586,6 +591,7 @@ function loadDirectoryData(){
 }
 
 
+
 function directoryFuzz(){
 
   const url = document.getElementById("directoryWebsite").value;
@@ -764,16 +770,27 @@ async function fetchAndCrawl(newUrl) {
 * 
 */
 async function infoDisclosure(val){
-    
+    var findingsArray = []
     // gets the value of the website input
     //let val = document.getElementById("website").value;
      chrome.storage.local.get(['selectedItems']).then(async res=>{
       if(val != null){
+        var response
+        var body
+        
+        try{
+           response =  await fetch(val,{mode:'no-cors'});
+           body =  await response.text();
+        }catch(err){
+          console.log(err);
+        }
         try {
 
             //fetches the website
-            const response =  await fetch(val,{mode:'no-cors'});
-            const body =  await response.text();
+          
+           
+
+            
             
             
             //gets the RegEx from the json file
@@ -799,7 +816,10 @@ async function infoDisclosure(val){
                         match[0] = match[0].substring(0,100);
                         match[0] = match[0].replace(/</g, "&lt;").replace(/>/g, "&gt;");//this is to replace the < and > with html entities so it doesnt get rendered as html
                         if(res['selectedItems'].includes(key)){
-                          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+val+" n>"+lastPart+"</a></div><div class='col'>"+key+"</div><div class='col'>"+match[0]+"</div></div>";
+                          let data = match[0]
+                          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+val+" n>"+lastPart+"</a></div><div class='col'>"+key+"</div><div class='col'>"+match[0]+"fagner"+"</div></div>";
+                          findingsArray.push({"url":val,"src":lastPart,"type":key,"data":data})
+                          console.log(findingsArray.length)
                         }
                        //this adds the data to the table
                         
@@ -808,6 +828,22 @@ async function infoDisclosure(val){
                     }
               
               }
+              chrome.storage.local.get(['TargetsList']).then(targetList => {
+                let targetListReturned = targetList['TargetsList']
+                targetListReturned.forEach((target,index) => {
+                  if(target.selected == true){
+                    if(findingsArray.length != 0){
+                    console.log("targetlent: "+target.infoDisclosure.length+" findings: "+findingsArray.length)
+                  }
+                    target.infoDisclosure = [...target.infoDisclosure,...findingsArray]
+                    
+                   
+                  }
+                })
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+               
+              })
+
               count++;
               document.getElementById("ulr-done").innerHTML = "crawlled "+count+" pages";
               document.getElementById("ulr-left").innerHTML =  visitedUrl.length+" pages left";
@@ -820,5 +856,48 @@ async function infoDisclosure(val){
     }
     })
    
-  
+    
 }
+// this function loads the data from the storage and adds it to the pannel
+function loadInfoDisclosureData(){
+  
+  chrome.storage.local.get(['TargetsList']).then(TargetsList =>{// get the array of targets from storage
+    
+    if (TargetsList["TargetsList"] === undefined) {// if the array is empty
+      
+      chrome.storage.local.set({"TargetsList": []}).then(res=>{
+        
+      })// create the array
+    } else {
+      // if the array is not empty
+      TargetsList["TargetsList"].map(target=>{
+      
+        if(target.selected == true){// if the target is selected
+         
+          target.infoDisclosure.map(infoDisclosure=>{// loop through the directories
+            // add the data to the pannel
+            document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+infoDisclosure.url+">"+infoDisclosure.src+"</a></div><div class='col'>"+infoDisclosure.type+"</div><div class='col'>"+infoDisclosure.data+"</div></div>";
+                    
+          })
+          // end map
+          return true;
+        }
+        
+      })
+
+    }
+})
+
+}
+function clearInfoDiscData(){
+  chrome.storage.local.get(['TargetsList']).then(TargetsList =>{// get the array of targets from storage
+    targetListReturned = TargetsList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.infoDisclosure = []
+        chrome.storage.local.set({"TargetsList": targetListReturned})
+        document.getElementById("table").innerHTML = "";
+      }
+    })
+  })
+  }

@@ -176,7 +176,7 @@ nav>div:hover{
     text-decoration: none;
     display: inline-block;
 }
-#DirectoryFuzzStop{
+#DirectoryFuzzStop,#infoDiscClear{
     background-color: #ff5555;
     font-weight: bold;
     border: none;
@@ -187,7 +187,7 @@ nav>div:hover{
     text-decoration: none;
     display: inline-block;
 }
-#DirectoryFuzzStop:hover{
+#DirectoryFuzzStop:hover,#infoDiscClear:hover{
     cursor: pointer;
     background-color: #f94a4ade;
 }
