@@ -200,7 +200,14 @@ function addTargetItem(){
 
         })}else{
           let targetListReturned = targetList['TargetsList']
-          targetListReturned.push({"name":"new target","selected":false,"id":generateUUID()})
+          let targetObj = {"name":"new target",
+          "selected":false,"id":generateUUID(),
+          "infoDisclosure":[],
+          "directoryFuzz":[],
+          "pathTransversal":[],
+          "methodology":[]
+        }
+          targetListReturned.push(targetObj)
           chrome.storage.local.set({"TargetsList": targetListReturned})
           const targetItem = createTargetItem(targetListReturned[targetListReturned.length-1])
           document.getElementById("targetsContainer").appendChild(targetItem)
@@ -449,11 +456,21 @@ async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
     responses.forEach(response => {
 
       if(response.status != 404 && response.status != 403){// if the response is not a 404 or 403
-        var directoriesArrayReturned 
+        var directoriesArrayReturned =[] 
         var isDirectoryInArray = false
+        var targetItemIndex
+        
 
-        chrome.storage.local.get(['DirectoryData']).then(directoriesArray => {  
-        directoriesArrayReturned =  directoriesArray['DirectoryData'] // get the array of directories from storage
+        chrome.storage.local.get(['TargetsList']).then(targetListArray => { 
+        let targetListArrayReturned =  targetListArray['TargetsList'] // get the array of targets from storage 
+        targetListArrayReturned.forEach((target,index)=> {
+            if(target.selected == true){// if the target is selected
+              directoriesArrayReturned = target.directoryFuzz // get the array of directories from storage
+              targetItemIndex = index
+            }
+
+        })
+        
         
 
         // check if directory is already saved  
@@ -487,7 +504,8 @@ async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
             }
 
             directoriesArrayReturned.push(newDirectory) // add to array
-            chrome.storage.local.set({"DirectoryData":directoriesArrayReturned}) // add to storage
+            targetListArrayReturned[targetItemIndex].directoryFuzz = directoriesArrayReturned // add to target
+            chrome.storage.local.set({"TargetsList":targetListArrayReturned}) // add to storage
            } 
 
         })
@@ -523,27 +541,43 @@ async function makeRequests(urls, batchSize,url,type,recursiveDirectory)  {
 
 // This function clears the data from the storage and the pannel
 function clearData(){
-  chrome.storage.local.set({"DirectoryData": []}).then(res=>{
-    document.getElementById("table").innerHTML = "";
+
+  chrome.storage.local.get(['TargetsList']).then(TargetsList=>{ // get the array of targets from storage
+    let targetListReturned = TargetsList['TargetsList']// get the array of targets from storage
+    targetListReturned.map(target=>{ // loop through the targets
+      if(target.selected == true){ // if the target is selected
+        target.directoryFuzz = []// clear the directory fuzz array
+        chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
+        document.getElementById("table").innerHTML = "";// clear the pannel
+      }
+    })
   })
+  
 }
 
 // This function loads the data from the storage and adds it to the pannel
 function loadDirectoryData(){
 
-  chrome.storage.local.get(['DirectoryData']).then(DirectoryData =>{
+  chrome.storage.local.get(['TargetsList']).then(TargetsList =>{// get the array of targets from storage
     
-    if (DirectoryData["DirectoryData"] === undefined) {
+    if (TargetsList["TargetsList"] === undefined) {// if the array is empty
       
-      chrome.storage.local.set({"DirectoryData": []}).then(res=>{
+      chrome.storage.local.set({"TargetsList": []}).then(res=>{
         
-      })
+      })// create the array
     } else {
-      
-      DirectoryData["DirectoryData"].map(directory=>{
-        // add to pannel
-        document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+directory.url+">"+directory.name+"</a></div><div class='col'>"+directory.type+"</div><div class='col'>"+directory.code+"</div></div>";
-         
+      // if the array is not empty
+      TargetsList["TargetsList"].map(target=>{
+       
+        if(target.selected == true){// if the target is selected
+          target.directoryFuzz.map(directory=>{// loop through the directories
+            // add the data to the pannel
+            document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+directory.url+">"+directory.name+"</a></div><div class='col'>"+directory.type+"</div><div class='col'>"+directory.code+"</div></div>";
+          })
+          // end map
+          return true;
+        }
+        
       })
 
     }
@@ -564,37 +598,37 @@ function directoryFuzz(){
 // This function tries to find hiden directories in the website
 async function findDirectories(url,recursiveDirectory){
     const urls=[] // an array of URLs to fetch
-    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json']
+    const directoriesFiles = ['./fuzz/directory3.json','./fuzz/files.json','./fuzz/directory2.json'] // an array of files to fetch
     //get the directory1.txt file
     for(let i = 0; i<directoriesFiles.length;i++){
       
         await fetch(directoriesFiles[i]).then(response=>response.json().then(txt=>{
-          
+          // for each payload in the file, it creates a new url and adds it to the urls array
           txt.forEach(payload => {
            
             let newUrl;
-            if(url.endsWith("/") && payload.startsWith("/")){
+            if(url.endsWith("/") && payload.startsWith("/")){ // if the url ends with / and the payload starts with /
               newUrl = url+payload.substring(1);
       
-            }else if(url.endsWith("/") && !payload.startsWith("/")){
+            }else if(url.endsWith("/") && !payload.startsWith("/")){// if the url ends with / and the payload doesnt start with /
             
               newUrl = url+payload;
-            }else if(!url.endsWith("/") && payload.startsWith("/")){
+            }else if(!url.endsWith("/") && payload.startsWith("/")){// if the url doesnt end with / and the payload starts with /
               newUrl = url+payload;
-            }else if(!url.endsWith("/") && !payload.startsWith("/")){
+            }else if(!url.endsWith("/") && !payload.startsWith("/")){// if the url doesnt end with / and the payload doesnt start with /
               newUrl = url+"/"+payload;
             }
             
-            urls.push(newUrl);
+            urls.push(newUrl);// add the new url to the urls array
           })
 
         })) 
       }
       //update progress message
-      let directory = getPathFromUrl(url);  
-      document.getElementById('progress-message').innerHTML=directory;
+      let directory = getPathFromUrl(url);  // get the directory from the url
+      document.getElementById('progress-message').innerHTML=directory;// update the progress message
       const batchSize = 50; // the number of requests to make at once
-      makeRequests(urls, batchSize,url,"Directory",recursiveDirectory);
+      makeRequests(urls, batchSize,url,"Directory",recursiveDirectory);// call the makeRequests function and pass the urls array, the batch size, the url and the type of request
 }
 
 
