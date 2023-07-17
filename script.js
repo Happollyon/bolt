@@ -173,6 +173,17 @@ function updatePannel(doc)
       const addTargetButton = document.querySelector('#addTargetButton');
       addTargetButton.addEventListener('click', addTargetItem);  
         
+      }else if(doc == "Methodology"){
+        const methodologyContainer = div.querySelector('#methodologyContainer');
+        const pannel = document.querySelector('#pannel'); // gets the pannel
+        pannel.innerHTML = ""; // clears the pannel
+        pannel.appendChild(methodologyContainer); //append the pathTransversalContainer to the pannel
+      
+        // add event listeners to the buttons
+        const addProcedureButton = document.querySelector('#addProcedureButton');
+        addProcedureButton.addEventListener('click', addProcedure);
+
+        loadMetodologyData();
       }
 
     }
@@ -191,6 +202,9 @@ function updatePannel(doc)
       xhr.send();
   }else if(doc=="Targets"){
     xhr.open('GET', 'target.html');
+    xhr.send();
+  }else if(doc=="Methodology"){
+    xhr.open('GET', 'methodology.html');
     xhr.send();
   }
 }
@@ -307,7 +321,7 @@ function createTargetItem(target){
           updateTargetName(targetName.parentElement,targetName.innerHTML)
         });
 
-        targetToggle.addEventListener("click", function() {
+         targetToggle.addEventListener("click", function() {
           toggleTarget(targetToggle.parentElement)
           let allToggles = document.querySelectorAll('.targetToggle');
           allToggles.forEach(toggle => { toggle.classList.remove("targetToggleOn")});
@@ -386,6 +400,130 @@ function getPathFromUrl(url) {
   return path === '/' ? 'base url' : path; // if the path is / return base url else return the path
 }
 
+//================= Methodology =================
+function addProcedure(){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        
+        const procedure = {
+          "name":"new procedure",
+          "id":generateUUID(),
+          "complete":false,
+          "body":[]
+        }
+        target.methodology.push(procedure)
+        chrome.storage.local.set({"TargetsList": targetListReturned})
+        const procedureItem = createProcedureIem(procedure)
+        document.getElementById("methodologyContainer").appendChild(procedureItem)
+      }
+    })
+  })
+}
+function createProcedureIem(target){
+    // create the target item and add the classes
+    const procedureItem = document.createElement('div')
+    procedureItem.classList.add('procedureItem');
+    procedureItem.id = target.id;
+    procedureItem.draggable = true;
+
+    // create toggle switch and add classes
+    let completeToggle = document.createElement('div')
+    completeToggle.classList.add('completeToggle');
+    if(target.complete){
+      completeToggle.classList.add('procedureCompleted');
+    }
+    // create the target name and add classes and innerHTML
+    let procedureName = document.createElement('div')
+    procedureName.classList.add('procedureName')
+    procedureName.contentEditable = true;
+    procedureName.innerHTML = target.name;
+
+    // create the target delete button and add classes and innerHTML
+    let procedureItemDelete = document.createElement('div')
+    procedureItemDelete.classList.add('procedureItemDelete')
+    procedureItemDelete.innerHTML = "X";
+
+     // build the target item by appending the elements to the target item
+    procedureItem.appendChild(completeToggle);
+    procedureItem.appendChild(procedureName);
+    procedureItem.appendChild(procedureItemDelete);
+
+    completeToggle.addEventListener("click", ()=>{
+      toggleProcedure(completeToggle.parentElement)
+      completeToggle.classList.toggle("procedureCompleted");
+    });
+    procedureItemDelete.addEventListener('click', () => {
+      deleteProcedureItem(procedureItemDelete.parentElement)
+    })
+    procedureName.addEventListener("input", function() {
+      updateProcedureName(procedureName.parentElement,procedureName.innerHTML)
+    });
+   
+
+    return procedureItem;
+}
+function loadMetodologyData(){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          const procedureItem = createProcedureIem(procedure)
+          document.getElementById("methodologyContainer").appendChild(procedureItem)
+        })
+      }
+    })
+  })
+}
+function toggleProcedure(procedureItem){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == procedureItem.id){
+            procedure.complete = !procedure.complete
+            chrome.storage.local.set({"TargetsList": targetListReturned})
+          }
+        })
+      }
+    })
+  })
+}
+function deleteProcedureItem(procedureItem){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach((procedure,index)=>{
+          if(procedure.id == procedureItem.id){
+            target.methodology.splice(index,1)
+            chrome.storage.local.set({"TargetsList": targetListReturned})
+            procedureItem.remove();
+          }
+        })
+      }
+    })
+  })
+}
+function updateProcedureName(procedureItem,procedureName){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == procedureItem.id){
+            procedure.name = procedureName
+            chrome.storage.local.set({"TargetsList": targetListReturned})
+          }
+        })
+      }
+    })
+  })
+}
+
 //===============Path transversal===================
 async function scan(){
     const url = document.getElementById("pathTransversalWebsite").value;
@@ -421,25 +559,25 @@ async function makeTransversalRequests(payloads,url,batchsize)  {
       const promises = batch.map(payload => fetch(url+payload, {timeout: 2000}));
       const responses = await Promise.all(promises);
       responses.forEach(response => {
-        if(response.status != 404 && response.status != 403){
-          let responseURL = response.url;
-          let responseStatus = response.status;
+        if(response.status != 404 && response.status != 403){ // if the response is not a 404 or 403
+          let responseURL = response.url; // get the response url
+          let responseStatus = response.status;// get the response status
 
-          response.text().then(response=>{
-          chrome.storage.local.get(['TargetsList']).then(targetList => { 
+          response.text().then(response=>{ // get the response text
+          chrome.storage.local.get(['TargetsList']).then(targetList => {  // get the target list from storage
 
-            let targetListReturned = targetList['TargetsList']
-            let contentSize = response.length;
-            targetListReturned.forEach((target,index) => {
-            if(target.selected == true){
-              var isDirectoryInArray = false
-              target.pathTransversal.map(obj=>{
-                if(obj.url == responseURL){
-                  isDirectoryInArray =  true;
-                  return true;
+            let targetListReturned = targetList['TargetsList'] // get the target list from storage
+            let contentSize = response.length; // get the content size
+            targetListReturned.forEach((target,index) => { // loop through the targets
+            if(target.selected == true){ // if the target is selected
+              var isDirectoryInArray = false// create a variable to check if the directory is already in the array
+              target.pathTransversal.map(obj=>{// loop through the path transversal array
+                if(obj.url == responseURL){ // if the url is already in the array
+                  isDirectoryInArray =  true; 
+                  return true; 
                 }
               })
-              if(isDirectoryInArray===false){
+              if(isDirectoryInArray===false){ // if the url is not already in the array => add it to the array and to the storage
                 target.pathTransversal.push({"url":responseURL,"code":responseStatus,"contentSize":contentSize})
                 chrome.storage.local.set({"TargetsList": targetListReturned})
                 document.getElementById("table").innerHTML +="<div class='row'><div class='col'><a target=”_blank” href="+responseURL+">"+responseURL+"</a></div><div class='col'>"+contentSize+"</div><div class='col'>"+responseStatus+"</div></div>"
@@ -457,28 +595,29 @@ async function makeTransversalRequests(payloads,url,batchsize)  {
   }
 
 }
-
+// This function loads the data from the storage and adds it to the pannel
 function displayPathTransversalData(){
   chrome.storage.local.get(['TargetsList']).then(targetList => { 
-    let targetListReturned = targetList['TargetsList']
-    targetListReturned.forEach((target,index) => {
-      if(target.selected == true){
-        target.pathTransversal.forEach(obj=>{
+    let targetListReturned = targetList['TargetsList'] 
+    targetListReturned.forEach((target,index) => { // loop through the targets
+      if(target.selected == true){// if the target is selected
+        target.pathTransversal.forEach(obj=>{// loop through the path transversal array
+          // add the data to the pannel
           document.getElementById("table").innerHTML +="<div class='row'><div class='col'><a target=”_blank” href="+obj.url+">"+obj.url+"</a></div><div class='col'>"+obj.contentSize+"</div><div class='col'>"+obj.code+"</div></div>"
         })
       }
     })
   })
 }
-
+// This function clears the data from the storage and the pannel
 function clearPathTransversalData(){
   chrome.storage.local.get(['TargetsList']).then(targetList => {
     let targetListReturned = targetList['TargetsList']
-    targetListReturned.forEach((target,index) => {
-      if(target.selected == true){
-        target.pathTransversal = []
-        chrome.storage.local.set({"TargetsList": targetListReturned})
-        document.getElementById("table").innerHTML = ""
+    targetListReturned.forEach((target,index) => { // loop through the targets
+      if(target.selected == true){// if the target is selected
+        target.pathTransversal = []// clear the path transversal array
+        chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
+        document.getElementById("table").innerHTML = ""// clear the pannel
       }
     })
   })

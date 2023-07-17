@@ -65,7 +65,7 @@ nav>div:hover{
     cursor: pointer;
     background-color: #24ae89;
 }
-#targetsContainer{
+#targetsContainer,#methodologyContainer{
     width: 100%;
     height: 100%;
     display: flex;
@@ -73,7 +73,7 @@ nav>div:hover{
     justify-content: flex-start;
     padding-top: 2%;
 }
-.targetItem{
+.targetItem,.procedureItem{
     width: 100%;
     height: 10vh;
     min-height: 10vh;
@@ -84,13 +84,13 @@ nav>div:hover{
    
    
 }
-.targetItem:nth-child(odd){
+.targetItem:nth-child(odd),.procedureItem:nth-child(odd){
     background-color: #44475a;
 }
-.targetItem:nth-child(even){
+.targetItem:nth-child(even),.procedureItem:nth-child(even){
     background-color: #282a36;
 }
-.targetName{
+.targetName,.procedureName{
     
     left:1%;
     width: 50%;
@@ -101,7 +101,7 @@ nav>div:hover{
     align-items: center;   
 }
 
-.targetDelete{
+.targetDelete,.procedureItemDelete{
     height: 30%;
     justify-self: flex-end;
     margin-right: 0;
@@ -114,12 +114,12 @@ nav>div:hover{
     border: 2px solid #636a93;
     color: #636a93;
 }
-.targetDelete:hover{
+.targetDelete:hover,.procedureItemDelete:hover{
     cursor: pointer;
     background-color: #636a93;
     color: #ffffff;
 }
-.targetToggle{
+.targetToggle,.completeToggle{
     height: 30%;
     aspect-ratio: 1;
     display: flex;
@@ -129,11 +129,11 @@ nav>div:hover{
     border-radius: 100%;
     border: 2px solid #636a93;
 }
-.targetToggle:hover{
+.targetToggle:hover,.completeToggle:hover{
     cursor: pointer;
     background-color: #636a93;
 }
-.targetToggleOn{
+.targetToggleOn,.procedureCompleted{
     height: 30%;
     aspect-ratio: 1;
     display: flex;
@@ -145,13 +145,32 @@ nav>div:hover{
     background-color: #1a9776;
     cursor: pointer;
 }
-.targetToggleOn:hover{
+.targetToggleOn:hover,.procedureCompleted:hover{
     background-color: #636a93;
 }
 .dragging{
     opacity: 0.5;
     cursor: move;       
   
+}
+/*Methodology screen*/
+#addProcedureButton{
+    position: fixed;
+    right: 5%;
+    border:1px solid white;
+    border-radius: 100%;
+    width: 7%;
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5em;
+    top: 80%;
+    
+}
+#addProcedureButton:hover{
+    cursor: pointer;
+    background-color: #24ae89;
 }
 /*InfoDiscContainer*/
 .attackBtn{
