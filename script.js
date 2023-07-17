@@ -110,6 +110,9 @@ function updatePannel(doc)
         //=====add event listeners to the buttons=====
         const scanButton = document.querySelector('#scanButton');
         scanButton.addEventListener('click', scan);
+        const clearButton = document.querySelector('#DirectoryFuzzStop');
+        clearButton.addEventListener('click', clearPathTransversalData);
+        displayPathTransversalData();
       }else if(doc == "Targets"){
 
         const targetsContainer = div.querySelector('#targetsContainer');
@@ -419,11 +422,32 @@ async function makeTransversalRequests(payloads,url,batchsize)  {
       const responses = await Promise.all(promises);
       responses.forEach(response => {
         if(response.status != 404 && response.status != 403){
-          responseURL = response.url;
-          responseStatus = response.status;
+          let responseURL = response.url;
+          let responseStatus = response.status;
 
           response.text().then(response=>{
-          document.getElementById("table").innerHTML += "<div class='row'><div class='col'><a target=”_blank” href="+responseURL+">"+responseURL+"</a></div><div class='col'>"+response.length+"</div><div class='col'>"+responseStatus+"</div></div>";
+          chrome.storage.local.get(['TargetsList']).then(targetList => { 
+
+            let targetListReturned = targetList['TargetsList']
+            let contentSize = response.length;
+            targetListReturned.forEach((target,index) => {
+            if(target.selected == true){
+              var isDirectoryInArray = false
+              target.pathTransversal.map(obj=>{
+                if(obj.url == responseURL){
+                  isDirectoryInArray =  true;
+                  return true;
+                }
+              })
+              if(isDirectoryInArray===false){
+                target.pathTransversal.push({"url":responseURL,"code":responseStatus,"contentSize":contentSize})
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+                document.getElementById("table").innerHTML +="<div class='row'><div class='col'><a target=”_blank” href="+responseURL+">"+responseURL+"</a></div><div class='col'>"+contentSize+"</div><div class='col'>"+responseStatus+"</div></div>"
+              }
+            }
+          })
+          });  
+         
           })}
       });
       }
@@ -434,6 +458,31 @@ async function makeTransversalRequests(payloads,url,batchsize)  {
 
 }
 
+function displayPathTransversalData(){
+  chrome.storage.local.get(['TargetsList']).then(targetList => { 
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.pathTransversal.forEach(obj=>{
+          document.getElementById("table").innerHTML +="<div class='row'><div class='col'><a target=”_blank” href="+obj.url+">"+obj.url+"</a></div><div class='col'>"+obj.contentSize+"</div><div class='col'>"+obj.code+"</div></div>"
+        })
+      }
+    })
+  })
+}
+
+function clearPathTransversalData(){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.pathTransversal = []
+        chrome.storage.local.set({"TargetsList": targetListReturned})
+        document.getElementById("table").innerHTML = ""
+      }
+    })
+  })
+}
 //======================== Directory Fuzz ========================
 
 // This function  makes the thousands of requests to the server
