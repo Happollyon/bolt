@@ -145,7 +145,7 @@ function updatePannel(doc)
             const targetId = dragbleItem.getAttribute("id");
             chrome.storage.local.get(['TargetsList']).then(targetList => {
               let targetListReturned = targetList['TargetsList']
-              alert(targetId)
+              
             });
           });
         })
@@ -163,15 +163,16 @@ function updatePannel(doc)
             // Moving the dragging item only when the cursor is above 50% of the sibling element
               return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
           });
+          
           // Inserting the dragging item before the found sibling
           sortableList.insertBefore(draggingItem, nextSibling)}
-      //adding event listeners to the sortable list
-      sortableList.addEventListener("dragover", initSortableList);
-      sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
+          //adding event listeners to the sortable list
+          sortableList.addEventListener("dragover", initSortableList);
+          sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
 
-      //=====add event listeners to the buttons=====
-      const addTargetButton = document.querySelector('#addTargetButton');
-      addTargetButton.addEventListener('click', addTargetItem);  
+          //=====add event listeners to the buttons=====
+          const addTargetButton = document.querySelector('#addTargetButton');
+          addTargetButton.addEventListener('click', addTargetItem);  
         
       }else if(doc == "Methodology"){
         const methodologyContainer = div.querySelector('#methodologyContainer');
@@ -184,8 +185,30 @@ function updatePannel(doc)
         addProcedureButton.addEventListener('click', addProcedure);
 
         loadMetodologyData();
-      }
+        const sortableList = document.querySelector('#methodologyContainer');
+        const dragbleItems = document.querySelectorAll('.procedureItem');
+        //adding event listeners to the sortable list
+        const initSortableList = (e) => {
+          // if the item is being dragged, prevent the default action
+          e.preventDefault();
+          const draggingItem = document.querySelector(".dragging"); // Getting the currently dragging item
 
+          // Getting all items except currently dragging and making array of them
+          let siblings = [...sortableList.querySelectorAll(".procedureItem:not(.dragging)")];
+          // Finding the sibling after which the dragging item should be placed
+          let nextSibling = siblings.find(sibling => {
+            // Moving the dragging item only when the cursor is above 50% of the sibling element
+              return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
+          });
+        
+          // Inserting the dragging item before the found sibling
+          sortableList.insertBefore(draggingItem, nextSibling)
+        }
+       //adding event listeners to the sortable list
+       sortableList.addEventListener("dragover", initSortableList);
+       sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
+
+      }
     }
   };
 
@@ -395,8 +418,8 @@ chrome.storage.local.get(['TargetsList']).then(targetList => {
 
 // This function gets the path from the url
 function getPathFromUrl(url) {
-  const parsedUrl = new URL(url);//parse the url
-  const path = parsedUrl.pathname;//get the path from the url
+  const parsedUrl = new URL(url); //parse the url
+  const path = parsedUrl.pathname; //get the path from the url
   return path === '/' ? 'base url' : path; // if the path is / return base url else return the path
 }
 
@@ -461,7 +484,37 @@ function createProcedureIem(target){
       updateProcedureName(procedureName.parentElement,procedureName.innerHTML)
     });
    
+    //add events to drag and drop
+    procedureItem.addEventListener('dragstart', () => {
+      // if the item is being dragged, add the dragging class
+      setTimeout(() =>  procedureItem.classList.add('dragging'), 0);
 
+    });
+    procedureItem.addEventListener('dragend', () => {
+      procedureItem.classList.remove('dragging'); // if the item is not being dragged, remove the dragging class
+      const procedureId = procedureItem.getAttribute("id");// get the id of the target item
+      let allProcedures = document.querySelectorAll('.procedureItem');// get all the target items
+      let procedureList = [];// create an array to store the target items
+
+      allProcedures.forEach(procedure => {
+        procedureList.push(procedure.getAttribute("id"))// add the target item id to the array
+      });
+      let procedureIndex = procedureList.indexOf(procedureId); // find the indext the target being dragged holds at the moment
+      chrome.storage.local.get(['TargetsList']).then(targetList => {
+        let targetListReturned = targetList['TargetsList']
+        targetListReturned.forEach((target,index) => {
+          if(target.selected == true){ // if the target is selected
+            target.methodology.forEach((procedure,index)=>{
+              if(procedure.id == procedureId){ // if the procedure id is the same as the procedure item id
+                target.methodology.splice(index,1); // remove the procedure from the procedure list
+                target.methodology.splice(procedureIndex,0,procedure); // add the procedure to the new position
+                chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
+              }
+            })
+          }
+        })
+      });
+    });
     return procedureItem;
 }
 function loadMetodologyData(){
@@ -525,16 +578,17 @@ function updateProcedureName(procedureItem,procedureName){
 }
 
 //===============Path transversal===================
+// This function scans the website for path transversal vulnerabilities
 async function scan(){
-    const url = document.getElementById("pathTransversalWebsite").value;
-    const payloads = [];
-    const payloadsFiles = ['./fuzz/directoryTransversal.json']
+    const url = document.getElementById("pathTransversalWebsite").value; // get the url from the input
+    const payloads = [];// create an array to store the payloads
+    const payloadsFiles = ['./fuzz/directoryTransversal.json'] // an array of files to fetch
 
     //query the payloads files
-    for(let i = 0; i<payloadsFiles.length;i++){
-      await fetch(payloadsFiles[i]).then(response=>response.json().then(txt=>{
-        txt.forEach(payload => {
-          payloads.push(payload);
+    for(let i = 0; i<payloadsFiles.length;i++){ // loop through the payloads files
+      await fetch(payloadsFiles[i]).then(response=>response.json().then(txt=>{ // fetch the file
+        txt.forEach(payload => { // loop through the payloads
+          payloads.push(payload); // add the payload to the array  
         })
 
       }))
@@ -548,13 +602,13 @@ async function scan(){
 // This function  makes the thousands of requests to the server and needs to be brokent down into smaller payloads
 
 async function makeTransversalRequests(payloads,url,batchsize)  {
-  const batches = [];
+  const batches = []; // create an array to store the batches of payloads
   for (let i = 0; i < payloads.length; i += batchsize) {
-    batches.push(payloads.slice(i, i + batchsize));
+    batches.push(payloads.slice(i, i + batchsize)); // split the payloads into batches
   }
 
   for(let i = 0;i<batches.length;i++){
-    const batch = batches[i];
+    const batch = batches[i]; // get the batch
     try{
       const promises = batch.map(payload => fetch(url+payload, {timeout: 2000}));
       const responses = await Promise.all(promises);
