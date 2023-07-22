@@ -11,7 +11,8 @@ body{
     color: #f8f8f2;
     font-family: 'Courier New', Courier, monospace;
     text-align: center;
-    height: 100;
+    height: 100%;
+    
 }
 
 #pannel{
@@ -65,6 +66,9 @@ nav>div:hover{
     cursor: pointer;
     background-color: #24ae89;
 }
+#taskListContainer{
+    min-height: 90%;
+}
 #targetsContainer,#methodologyContainer{
     width: 100%;
     height: 100%;
@@ -90,7 +94,10 @@ nav>div:hover{
 .targetItem:nth-child(even),.procedureItem:nth-child(even){
     background-color: #282a36;
 }
-.targetName,.procedureName{
+.clickBox{
+    background-color: #1a9776;
+}
+.targetName,.procedureName,.taskName,.noteName{
     
     left:1%;
     width: 50%;
@@ -98,10 +105,11 @@ nav>div:hover{
     margin-right: 30%;
     display: flex;
     flex-direction: row;
-    align-items: center;   
+    align-items: center; 
+    font-weight: larger;  
 }
 
-.targetDelete,.procedureItemDelete{
+.targetDelete,.procedureItemDelete,.taskDelete,.noteDelete{
     height: 30%;
     justify-self: flex-end;
     margin-right: 0;
@@ -114,12 +122,12 @@ nav>div:hover{
     border: 2px solid #636a93;
     color: #636a93;
 }
-.targetDelete:hover,.procedureItemDelete:hover{
+.targetDelete:hover,.procedureItemDelete:hover,.noteDelete:hover,.taskDelete:hover{
     cursor: pointer;
     background-color: #636a93;
     color: #ffffff;
 }
-.targetToggle,.completeToggle{
+.targetToggle,.completeToggle,.taskNotCompletedToggle{
     height: 30%;
     aspect-ratio: 1;
     display: flex;
@@ -129,11 +137,11 @@ nav>div:hover{
     border-radius: 100%;
     border: 2px solid #636a93;
 }
-.targetToggle:hover,.completeToggle:hover{
+.targetToggle:hover,.completeToggle:hover,.taskNotCompletedToggle:hover{
     cursor: pointer;
     background-color: #636a93;
 }
-.targetToggleOn,.procedureCompleted{
+.targetToggleOn,.procedureCompleted,.taskCompletedToggle{
     height: 30%;
     aspect-ratio: 1;
     display: flex;
@@ -145,13 +153,12 @@ nav>div:hover{
     background-color: #1a9776;
     cursor: pointer;
 }
-.targetToggleOn:hover,.procedureCompleted:hover{
+.targetToggleOn:hover,.procedureCompleted:hover,.taskCompletedToggle:hover{
     background-color: #636a93;
 }
 .dragging{
     opacity: 0.5;
     cursor: move;       
-  
 }
 /*Methodology screen*/
 #addProcedureButton{
@@ -172,6 +179,212 @@ nav>div:hover{
     cursor: pointer;
     background-color: #24ae89;
 }
+/*Proceedure Screen*/
+#procedureBody{
+    display: none;
+    background-color: #282a36;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    top:0;
+    left: 0;
+    overflow-y: hidden;
+}
+#burgerMenu{
+    width: fit-content;
+    height: 50%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #44475a;
+}
+#burger{
+    aspect-ratio: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    cursor: pointer;transition: 0.5s;
+}
+.menuList{
+    width: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    transition: 0.5s;
+    
+}
+#newNote,#newTask{
+    
+    width: 50px;
+    height:100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    cursor: pointer;
+}
+#newNote>img,#newTask>img{
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
+}
+.burgerLine1,.burgerLine2{
+    width: 80%;
+    border: 1px solid #f8f8f2;
+    transition: 0.5s;
+    
+}
+.burgerLine2-rotate{
+    transform: rotate(-45deg);
+
+}
+.burgerLine1-rotate{
+    transform: rotate(45deg);
+}
+
+#procedureHeader{
+    width: 100%;
+    height: 7%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #44475a;
+}
+#procedureTitle{
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-left: 3%;
+    align-items: center;
+    justify-content: center;
+    font-size: larger;
+    font-weight: bold;
+}
+#closeProcedure{
+    width: 10%;
+    aspect-ratio: 1;
+    font-size: larger;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    
+}
+#closeProcedure:hover{
+    color: #ff5555;
+}
+
+#procedureAddButton>span{
+    white-space: nowrap;
+}
+#taskList{
+    width: 100%;
+    height: 93%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    overflow-y: scroll;
+}
+.taskItem,.noteItemHeader{
+    width: 100%;
+    height: 10vh;
+    min-height: 10vh;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    font-size: larger;
+}
+.noteItem{
+    margin-left: 8%;
+    display: flex;
+    flex-direction: column;
+    height: 10vh;
+    font-size: larger;
+    width: 90%;
+    border-radius: 5px;
+    
+    
+}
+.noteItem:hover{
+    
+    background-color: #44475a;
+}
+.noteItemOpen{
+    margin-left: 8%;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    background-color: #44475a;
+    width: 90%;
+    border-radius: 5px;
+    
+    
+}
+.noteIcon{
+    width: 10%;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    border-radius: 100%;
+
+}
+.noteIcon>img{
+    aspect-ratio: 1;
+    height: 30%;
+}
+.noteIcon:hover{
+    cursor: pointer;
+    background-color: #44475a;
+}
+.noteText{
+
+    overflow: hidden;   
+   
+}
+
+.noteTextOpen{
+    height:fit-content; 
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    margin-left: 3%;
+    margin-right: 3%;
+    margin-bottom: 3%;
+    margin-top: 3%;
+    font-size: larger;
+   
+}
+
+#taskList::-webkit-scrollbar{
+    width: 3px;
+    
+}
+#taskList::-webkit-scrollbar-track{
+    background: #282a36;
+}
+#taskList::-webkit-scrollbar-thumb{
+    background: #8be9fd;
+    border-radius: 100px;
+
+}   
+#taskList::-webkit-scrollbar-thumb:hover{
+    background: #8be9fd;
+}
+
 /*InfoDiscContainer*/
 .attackBtn{
     background-color: #24ae89;
@@ -423,19 +636,20 @@ nav>div:hover{
 
     background-color: #44475a;
 }
-::-webkit-scrollbar{
+body::-webkit-scrollbar{
     width: 10px;
+    display: none;
     
 }
-::-webkit-scrollbar-track{
+body::-webkit-scrollbar-track{
     background: #282a36;
 }
-::-webkit-scrollbar-thumb{
+body::-webkit-scrollbar-thumb{
     background: #8be9fd;
     border-radius: 100px;
 
 }   
-::-webkit-scrollbar-thumb:hover{
+body::-webkit-scrollbar-thumb:hover{
     background: #8be9fd;
 }
 

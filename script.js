@@ -15,7 +15,63 @@
 //atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
     updatePannel("Targets")
+    
+   
+    const newTaskButton = document.querySelector('#newTask');
+    
+    const newNoteButton = document.querySelector('#newNote');
+    newNoteButton.addEventListener('click',()=>{ 
+      const note = {"type":"note","name":"new note","id":generateUUID() ,"body":"this is a new note"}
+      addNewNote(note)});
+    const coloseProcedureButton = document.querySelector('#closeProcedure');
+    coloseProcedureButton.addEventListener('click',()=>{
+      document.getElementById("procedureBody").style.display = "none";
+    })
+    newTaskButton.addEventListener('click',()=>{ 
+      const task = {"type":"task","name":"new task","completed":false,"id":generateUUID()}
+      addNewTask(task)});
+    let open = false
+    const burger = document.querySelector('#burger');
+    burger.addEventListener('click', () => {
+      
+      if(!open){
+      document.querySelector('.menuList').style.width = "150px";
+      document.querySelector('#burger').style.justifyContent = "center";
+      document.querySelector('.burgerLine1').classList.add('burgerLine1-rotate');
+      document.querySelector('.burgerLine2').classList.add('burgerLine2-rotate');
+      open = true
+      }else{
+        document.querySelector('.menuList').style.width = "0px";
+        document.querySelector('#burger').style.justifyContent = "space-around";
+        document.querySelector('.burgerLine1').classList.remove('burgerLine1-rotate');
+        document.querySelector('.burgerLine2').classList.remove('burgerLine2-rotate');
+        open = false
+      }
+    });
+   
+     //adding event listeners to the sortable list
+      const sortableList = document.querySelector('#taskList');
+      
+     //adding event listeners to the sortable list
+     const initSortableList = (e) => {
+      // if the item is being dragged, prevent the default action
+      e.preventDefault();
+      const draggingItem = document.querySelector(".dragging"); // Getting the currently dragging item
 
+      // Getting all items except currently dragging and making array of them
+      let siblings = [...sortableList.querySelectorAll(".targetItem:not(.dragging)")];
+      // Finding the sibling after which the dragging item should be placed
+      let nextSibling = siblings.find(sibling => {
+        // Moving the dragging item only when the cursor is above 50% of the sibling element
+          return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
+      });
+      
+      // Inserting the dragging item before the found sibling
+      sortableList.insertBefore(draggingItem, nextSibling)}
+      //adding event listeners to the sortable list
+      sortableList.addEventListener("dragover", initSortableList);
+      sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
+  
     chrome.storage.local.get(null, function(items) {
       console.log(items);
     });
@@ -24,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         select(event.target); // if you click a nav butoon you call the select function and pass the button as a parameter
     }));
   });
+
 
 //this function is called when a nav button is clicked
 function select(element){
@@ -129,7 +186,7 @@ function updatePannel(doc)
 
           dragbleItem.addEventListener('dragstart', () => {
             // if the item is being dragged, add the dragging class
-            alert("drag started")
+            
             setTimeout(() =>  dragbleItem.classList.add('dragging'), 0);
 
           });
@@ -137,7 +194,7 @@ function updatePannel(doc)
           dragbleItem.addEventListener('dragend', () => {
             // if the item is not being dragged, remove the dragging class
             dragbleItem.classList.remove('dragging');
-            alert("drag ended")
+           
             const nextSibling = dragbleItem.nextElementSibling;
             const nextSiblingId = nextSibling.getAttribute("id");
             const prevSibling = dragbleItem.previousElementSibling;
@@ -424,6 +481,7 @@ function getPathFromUrl(url) {
 }
 
 //================= Methodology =================
+
 function addProcedure(){
   chrome.storage.local.get(['TargetsList']).then(targetList => {
     let targetListReturned = targetList['TargetsList']
@@ -463,6 +521,10 @@ function createProcedureIem(target){
     procedureName.contentEditable = true;
     procedureName.innerHTML = target.name;
 
+    //click box
+    let clickBox = document.createElement('div')
+    clickBox.classList.add('clickBox')
+    clickBox.innerHTML = "click to open";
     // create the target delete button and add classes and innerHTML
     let procedureItemDelete = document.createElement('div')
     procedureItemDelete.classList.add('procedureItemDelete')
@@ -471,12 +533,16 @@ function createProcedureIem(target){
      // build the target item by appending the elements to the target item
     procedureItem.appendChild(completeToggle);
     procedureItem.appendChild(procedureName);
+    //procedureItem.appendChild(clickBox);
     procedureItem.appendChild(procedureItemDelete);
 
     completeToggle.addEventListener("click", ()=>{
       toggleProcedure(completeToggle.parentElement)
       completeToggle.classList.toggle("procedureCompleted");
     });
+    procedureItem.addEventListener('dblclick',()=>{
+      openProcedure(target.id)
+    })
     procedureItemDelete.addEventListener('click', () => {
       deleteProcedureItem(procedureItemDelete.parentElement)
     })
@@ -575,6 +641,384 @@ function updateProcedureName(procedureItem,procedureName){
       }
     })
   })
+}
+//================= Proceedure screen =================
+function openProcedure(procedureId){
+
+  document.getElementById("procedureBody").style.display = "block";
+  document.getElementById("taskList").innerHTML = "";
+  //add data to the procedure screen
+  document.getElementById("procedureBody").dataset.procedureId = procedureId;
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == procedureId){
+            document.getElementById("procedureTitle").innerHTML = procedure.name;
+            procedure.body.forEach(item=>{
+              if(item.type == "task"){
+                const task = createTaskItem(item)
+                document.getElementById("taskList").appendChild(task)
+              }else if(item.type == "note"){
+                const note = createNoteItem(item)
+                document.getElementById("taskList").appendChild(note)
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+}
+function addNewTask(task){
+  let newTask = createTaskItem(task)
+  //console.log(document.getElementById("procedureBody").dataset.procedureId)
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    // get the target list from storage
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.push(task)
+            chrome.storage.local.set({"TargetsList": targetListReturned})
+          }
+        })
+      }
+    })
+
+  })
+  document.getElementById("taskList").appendChild(newTask)
+
+}
+
+function addNewNote(note){
+  let newNote = createNoteItem(note)
+  document.getElementById("taskList").appendChild(newNote)
+
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    // get the target list from storage
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.push(note)
+            chrome.storage.local.set({"TargetsList": targetListReturned})
+          }
+        })
+      }
+    })
+  })
+
+}
+
+
+function createNoteItem(note){
+  
+  const noteItem = document.createElement('div')
+  noteItem.classList.add('noteItem');
+  noteItem.id = note.id;
+  noteItem.draggable = true;
+  
+  const noteItemHeader = document.createElement('div')
+  noteItemHeader.classList.add('noteItemHeader');
+
+  // create the note icon and add classes
+  let noteIcon = document.createElement('div')
+  noteIcon.classList.add('noteIcon')
+
+  let noteIconImg = document.createElement('img')
+  noteIconImg.src = "./txt.svg"
+  noteIcon.appendChild(noteIconImg)
+
+  // create the note name and add classes and innerHTML
+  let noteName = document.createElement('div')
+  noteName.classList.add('noteName')
+  noteName.contentEditable = true;
+  noteName.innerHTML = note.name;
+  noteName.addEventListener("input", function() {
+    updateProcedureNoteName(noteItemHeader.parentElement,noteName.innerHTML)
+
+  })
+  // create the note delete button and add classes and innerHTML
+  let noteItemDelete = document.createElement('div')
+  noteItemDelete.classList.add('noteDelete')
+  noteItemDelete.innerHTML = "X";
+  noteItemDelete.addEventListener('click', () => {
+    deleteProcedureNoteItem(noteItemDelete.parentElement)
+    noteItemDelete.parentElement.remove();
+  })
+
+  noteItemHeader.appendChild(noteIcon);
+  noteItemHeader.appendChild(noteName);
+  noteItemHeader.appendChild(noteItemDelete);
+
+  // create the note text and add classes and innerHTML
+  let noteText = document.createElement('div')
+  noteText.classList.add('noteText')
+  noteText.contentEditable = true;
+  noteText.innerHTML = note.body;
+  noteText.addEventListener("input", function() {
+    updateProcedureNoteText(noteText.parentElement,noteText.innerHTML)
+  })
+
+  // build the note item by appending the elements to the note item
+  noteItem.appendChild(noteItemHeader);
+  noteItem.appendChild(noteText);
+
+  // add event listeners to the note item
+  
+  noteIcon.addEventListener('click',(event)=>{
+    noteItem.classList.toggle('noteItemOpen');
+    //get the child with class name noteText
+    const noteText = noteItem.querySelector('.noteText');
+    noteText.classList.toggle('noteTextOpen');
+  });
+
+  noteItem.addEventListener('dragstart', () => {
+    // if the item is being dragged, add the dragging class
+    setTimeout(() =>  noteItem.classList.add('dragging'), 0);
+
+  });
+  noteItem.addEventListener('dragend', () => {
+    noteItem.classList.remove('dragging'); // if the item is not being dragged, remove the dragging class
+    const noteItemId = noteItem.getAttribute("id");// get the id of the target item
+    let allNotes = document.querySelectorAll('.noteItem,.taskItem');// get all the target items
+    let noteList = [];// create an array to store the target items
+
+    allNotes.forEach(note => {
+      noteList.push(note.getAttribute("id"))// add the target item id to the array
+    });
+    let noteIndex = noteList.indexOf(noteItemId); // find the indext the target being dragged holds at the moment
+    chrome.storage.local.get(['TargetsList']).then(targetList => {
+      let targetListReturned = targetList['TargetsList']
+      targetListReturned.forEach((target,index) => {
+        if(target.selected == true){ // if the target is selected
+          target.methodology.forEach(procedure=>{
+            if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){ // if the procedure id is the same as the procedure item id
+              procedure.body.forEach((note,index)=>{
+                if(note.id == noteItemId){ // if the procedure id is the same as the procedure item id
+                  procedure.body.splice(index,1); // remove the procedure from the procedure list
+                  procedure.body.splice(noteIndex,0,note); // add the procedure to the new position
+                  chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
+                }
+              })
+            }
+          })
+        }
+      })
+    });
+  });
+
+  return noteItem;
+}
+function createTaskItem(task){
+
+  
+  
+  const taskItem = document.createElement('div')
+  taskItem.classList.add('taskItem');
+  taskItem.id = task.id;
+  taskItem.draggable = true;
+
+  // create toggle switch and add classes
+  let taskToggle = document.createElement('div')
+  taskToggle.classList.add('taskNotCompletedToggle');
+  if(task.completed){
+    taskToggle.classList.add('taskCompletedToggle');
+  }
+
+  // add event listener to the toggle switch
+  taskToggle.addEventListener("click", ()=>{
+    taskToggle.classList.toggle("taskCompletedToggle");
+    toggleProceedureTask(taskToggle.parentElement)
+  })
+  // create the task name and add classes and innerHTML
+  let taskName = document.createElement('div')
+  taskName.classList.add('taskName')
+  taskName.contentEditable = true;
+  taskName.innerHTML = task.name;
+
+  taskName.addEventListener("input", function() {
+    updateProcedureTaskName(taskName.parentElement,taskName.innerHTML)
+  })
+
+  // create the task delete button and add classes and innerHTML
+  let taskItemDelete = document.createElement('div')
+  taskItemDelete.classList.add('taskDelete')
+  taskItemDelete.innerHTML = "X";
+  taskItemDelete.addEventListener('click', () => {
+    deleteProcedureTask(taskItemDelete.parentElement)
+
+  })
+  taskItem.addEventListener('dragstart', () => {
+    // if the item is being dragged, add the dragging class
+    setTimeout(() =>  taskItem.classList.add('dragging'), 0);
+
+  });
+  taskItem.addEventListener('dragend', () => {
+    taskItem.classList.remove('dragging'); // if the item is not being dragged, remove the dragging class
+    const taskItemId = taskItem.getAttribute("id");// get the id of the target item
+    let allTasks = document.querySelectorAll('.taskItem,.noteItem');// get all the target items
+    let taskList = [];// create an array to store the target items
+
+    allTasks.forEach(task => {
+      taskList.push(task.getAttribute("id"))// add the target item id to the array
+    });
+    let taskIndex = taskList.indexOf(taskItemId); // find the indext the target being dragged holds at the moment
+    chrome.storage.local.get(['TargetsList']).then(targetList => {
+      let targetListReturned = targetList['TargetsList']
+      targetListReturned.forEach((target,index) => {
+        if(target.selected == true){ // if the target is selected
+          target.methodology.forEach(procedure=>{
+            if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){ // if the procedure id is the same as the procedure item id
+              procedure.body.forEach((task,index)=>{
+                if(task.id == taskItemId){ // if the procedure id is the same as the procedure item id
+                  procedure.body.splice(index,1); // remove the procedure from the procedure list
+                  procedure.body.splice(taskIndex,0,task); // add the procedure to the new position
+                  chrome.storage.local.set({"TargetsList": targetListReturned})// update the target list in storage
+                }
+              })
+            }
+          })
+        }
+      })
+    });
+  });
+  // build the task item by appending the elements to the task item
+  taskItem.appendChild(taskToggle);
+  taskItem.appendChild(taskName);
+  taskItem.appendChild(taskItemDelete);
+
+  return taskItem;
+}
+
+function updateProcedureNoteName(noteItem,noteName){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.forEach(note=>{
+              if(note.id == noteItem.id){
+                note.name = noteName
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+}
+function updateProcedureNoteText(noteItem,noteBody){
+  let noteItemId = noteItem.id
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.forEach(note=>{
+              if(note.id == noteItemId){
+                note.body = noteBody
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+
+}
+function deleteProcedureNoteItem(noteItem){
+  let noteItemId = noteItem.id
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.forEach((note,index)=>{
+              if(note.id == noteItemId){
+                procedure.body.splice(index,1)
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+                noteItem.remove();
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+}
+
+function toggleProceedureTask(taskItem){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.forEach(task=>{
+              if(task.id == taskItem.id){
+                task.completed = !task.completed
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+                
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+
+}
+function deleteProcedureTask(procedureTaskItem){
+  let procedureTaskId = procedureTaskItem.id
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.forEach((task,index)=>{
+              if(task.id == procedureTaskId){
+                procedure.body.splice(index,1)
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+                procedureTaskItem.remove();
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+
+}
+function updateProcedureTaskName(taskItem,taskName){
+  chrome.storage.local.get(['TargetsList']).then(targetList => {
+    let targetListReturned = targetList['TargetsList']
+    targetListReturned.forEach((target,index) => {
+      if(target.selected == true){
+        target.methodology.forEach(procedure=>{
+          if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
+            procedure.body.forEach(task=>{
+              if(task.id == taskItem.id){
+                task.name = taskName
+                chrome.storage.local.set({"TargetsList": targetListReturned})
+              }
+            })
+          }
+        })
+      }
+    })
+  })
+
 }
 
 //===============Path transversal===================
