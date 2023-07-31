@@ -36,7 +36,7 @@ My extension stands out for its user-friendly interface, powerful automation cap
 
 ## Installation
 
-To install my Bolt, please follow the steps below:
+To install Bolt, please follow the steps below click [here](https://chrome.google.com/webstore/detail/bolt/nmapdbehmkhagolpgkdbpjldabdagcle):
 
 1. Open your Google Chrome browser.
 

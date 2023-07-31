@@ -1,13 +1,13 @@
 {
     "manifest_version": 3,
-    "name": "BoltHack",
-    "description": "Base Level Extension",
+    "name": "Bolt",
+    "description": "The purpose of this Google Chrome extension is to provide support to pentesters and developers in testing web applications",
     "version": "1.0",
     "action": {
       "default_popup": "hello.html",
       "default_icon": "bolt.png"
     },"permissions": [
-        "activeTab","tabs","storage"
+        "storage"
       ],
       "host_permissions": [
         "<all_urls>"

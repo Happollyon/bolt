@@ -17,9 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updatePannel("Targets")
     
    
-    const newTaskButton = document.querySelector('#newTask');
+    const newTaskButton = document.querySelector('#newTask'); // get the new task button
     
-    const newNoteButton = document.querySelector('#newNote');
+    const newNoteButton = document.querySelector('#newNote');// get the new note button
+    //adding event listeners to the new task button
     newNoteButton.addEventListener('click',()=>{ 
       const note = {"type":"note","name":"new note","id":generateUUID() ,"body":"this is a new note"}
       addNewNote(note)});
@@ -27,20 +28,23 @@ document.addEventListener('DOMContentLoaded', () => {
     coloseProcedureButton.addEventListener('click',()=>{
       document.getElementById("procedureBody").style.display = "none";
     })
+    //adding event listeners to the new note button
     newTaskButton.addEventListener('click',()=>{ 
       const task = {"type":"task","name":"new task","completed":false,"id":generateUUID()}
-      addNewTask(task)});
+      addNewTask(task)})
+      
     let open = false
+    //adding event listeners to the burger menu
     const burger = document.querySelector('#burger');
     burger.addEventListener('click', () => {
       
-      if(!open){
+      if(!open){ // if the menu is closed
       document.querySelector('.menuList').style.width = "150px";
       document.querySelector('#burger').style.justifyContent = "center";
       document.querySelector('.burgerLine1').classList.add('burgerLine1-rotate');
       document.querySelector('.burgerLine2').classList.add('burgerLine2-rotate');
       open = true
-      }else{
+      }else{ // if the menu is open
         document.querySelector('.menuList').style.width = "0px";
         document.querySelector('#burger').style.justifyContent = "space-around";
         document.querySelector('.burgerLine1').classList.remove('burgerLine1-rotate');
@@ -73,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
       sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
   
     chrome.storage.local.get(null, function(items) {
-      console.log(items);
+      console.log(items); // get all the items in the storage
     });
-    const navBtn = document.querySelectorAll('.navBtn');
+    const navBtn = document.querySelectorAll('.navBtn'); // get all the nav buttons
     navBtn.forEach(navBtn =>navBtn.addEventListener('click',(event)=>{
         select(event.target); // if you click a nav butoon you call the select function and pass the button as a parameter
     }));
@@ -715,21 +719,21 @@ function addNewNote(note){
 }
 
 
-function createNoteItem(note){
+function createNoteItem(note){ // this function creates a note item and returns it
   
-  const noteItem = document.createElement('div')
+  const noteItem = document.createElement('div') // create the note item and add the classes
   noteItem.classList.add('noteItem');
   noteItem.id = note.id;
   noteItem.draggable = true;
   
-  const noteItemHeader = document.createElement('div')
+  const noteItemHeader = document.createElement('div') // create the note item header and add the classes
   noteItemHeader.classList.add('noteItemHeader');
 
   // create the note icon and add classes
   let noteIcon = document.createElement('div')
   noteIcon.classList.add('noteIcon')
 
-  let noteIconImg = document.createElement('img')
+  let noteIconImg = document.createElement('img') // create the note icon image and add classes
   noteIconImg.src = "./txt.svg"
   noteIcon.appendChild(noteIconImg)
 
@@ -751,7 +755,7 @@ function createNoteItem(note){
     noteItemDelete.parentElement.remove();
   })
 
-  noteItemHeader.appendChild(noteIcon);
+  noteItemHeader.appendChild(noteIcon); // build the note item header by appending the elements to the note item header
   noteItemHeader.appendChild(noteName);
   noteItemHeader.appendChild(noteItemDelete);
 
@@ -1440,6 +1444,7 @@ async function fetchAndCrawl(newUrl) {
       if (linkUrl.host === baseUrl.host && !visitedUrl.includes(linkUrl.href)) {
         
          fetchAndCrawl(linkUrl.href);
+         console.log(linkUrl.href);
         //call the infoDisclosure function to check for info disclosure and add the data to the table 
         infoDisclosure(linkUrl.href);
 

@@ -352,6 +352,7 @@ nav>div:hover{
 .noteText{
 
     overflow: hidden;   
+    background-color: #44475a;
    
 }
 
@@ -366,6 +367,7 @@ nav>div:hover{
     margin-bottom: 3%;
     margin-top: 3%;
     font-size: larger;
+    background-color: #44475a;
    
 }
 
