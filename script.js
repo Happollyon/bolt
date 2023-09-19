@@ -10,7 +10,13 @@
 
 
 //================= Prepare UI =================
+// const editor = document.querySelector('div')
+// editor.addEventListener("paste", (e) => {
+//   e.preventDefault();
+//   const text = e.clipboardData.getData('text/plain');
+//   document.execCommand("insertHTML", false, text);
 
+// });
 
 //atatching event listeners to all the nav buttons
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
    
      //adding event listeners to the sortable list
       const sortableList = document.querySelector('#taskList');
+      
       
      //adding event listeners to the sortable list
      const initSortableList = (e) => {
@@ -226,7 +233,8 @@ function updatePannel(doc)
           });
           
           // Inserting the dragging item before the found sibling
-          sortableList.insertBefore(draggingItem, nextSibling)}
+          sortableList.insertBefore(draggingItem, nextSibling)
+         }
           //adding event listeners to the sortable list
           sortableList.addEventListener("dragover", initSortableList);
           sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
@@ -674,6 +682,30 @@ function openProcedure(procedureId){
       }
     })
   })
+
+  const sortableList = document.querySelector('#taskList');
+
+   //adding event listeners to the sortable list
+   const initSortableList = (e) => {
+    // if the item is being dragged, prevent the default action
+    e.preventDefault();
+    const draggingItem = document.querySelector(".dragging"); // Getting the currently dragging item
+
+    // Getting all items except currently dragging and making array of them
+    let siblings = [...sortableList.querySelectorAll(".noteItem:not(.dragging),.taskItem:not(.dragging)")];
+    // Finding the sibling after which the dragging item should be placed
+    let nextSibling = siblings.find(sibling => {
+      // Moving the dragging item only when the cursor is above 50% of the sibling element
+        return e.clientY <= sibling.offsetTop + sibling.offsetHeight / 2;
+    });
+    
+    // Inserting the dragging item before the found sibling
+    sortableList.insertBefore(draggingItem, nextSibling)
+   }
+  //adding event listeners to the sortable list
+  sortableList.addEventListener("dragover", initSortableList);
+  sortableList.addEventListener("dragenter", e => e.preventDefault());// Preventing default action on dragenter
+
 }
 function addNewTask(task){
   let newTask = createTaskItem(task)
@@ -718,7 +750,41 @@ function addNewNote(note){
 
 }
 
+// the purpose of this function is to read the text find markdown and convert it to html
+function interpretMarkdown(markdown){
+// **bold** => <b>bold</b>
+// *italic* => <i>italic</i>
+// #heading => <h1>heading</h1>
+// [link](https://www.google.com) => <a href="https://www.google.com">link</a>
 
+// split the text into an array of words
+let words = markdown.split(" ");
+let html = "";
+
+// loop through the array of words
+words.forEach(word=>{
+  if(word.startsWith("**") && word.endsWith("**")){
+    // if the word starts and ends with **, it is bold
+    html += ` <b>${word.substring(2,word.length-2)}</b> `;
+  }else if(word.startsWith("*") && word.endsWith("*")){
+    // if the word starts and ends with *, it is italic
+    html += ` <i>${word.substring(1,word.length-1)}</i> `;
+  }else if(word.startsWith("#")){
+    // if the word starts with #, it is a heading
+    html += ` <h1>${word.substring(1,word.length)}</h1> `;
+  }else if(word.startsWith("[") && word.endsWith(")")){
+    // if the word starts with [ and ends with ), it is a link
+    let link = word.substring(1,word.length-1).split("](");
+    html += ` <a href="${link[1]}">${link[0]}</a> `;
+  }else{
+    // if the word is not bold, italic, heading or link, it is just text
+    html += `${word} `;
+  }
+ 
+})
+
+return html;
+}
 function createNoteItem(note){ // this function creates a note item and returns it
   
   const noteItem = document.createElement('div') // create the note item and add the classes
@@ -751,8 +817,8 @@ function createNoteItem(note){ // this function creates a note item and returns 
   noteItemDelete.classList.add('noteDelete')
   noteItemDelete.innerHTML = "X";
   noteItemDelete.addEventListener('click', () => {
-    deleteProcedureNoteItem(noteItemDelete.parentElement)
-    noteItemDelete.parentElement.remove();
+    deleteProcedureNoteItem(noteItemHeader.parentElement)
+    //document.getElementById(note.id).style.display = "none";
   })
 
   noteItemHeader.appendChild(noteIcon); // build the note item header by appending the elements to the note item header
@@ -763,10 +829,24 @@ function createNoteItem(note){ // this function creates a note item and returns 
   let noteText = document.createElement('div')
   noteText.classList.add('noteText')
   noteText.contentEditable = true;
-  noteText.innerHTML = note.body;
-  noteText.addEventListener("input", function() {
-    updateProcedureNoteText(noteText.parentElement,noteText.innerHTML)
+  noteText.dataset.noteBody = note.body;
+  noteText.innerHTML =  interpretMarkdown(note.body);
+  // add event listener to the note text when unfocused
+  noteText.addEventListener("blur", function() {
+    let noteTextValue = interpretMarkdown(noteText.innerHTML);
+    noteText.innerHTML = noteTextValue;
   })
+  noteText.addEventListener("focusin", function() {
+    noteText.innerHTML = noteText.dataset.noteBody;
+    console.log("focusin")
+  });
+  noteText.addEventListener("input", function() {
+    let noteTextValue = noteText.innerHTML;
+    noteText.dataset.noteBody = noteTextValue;
+    updateProcedureNoteText(noteText.parentElement,noteTextValue);
+  })
+
+
 
   // build the note item by appending the elements to the note item
   noteItem.appendChild(noteItemHeader);
@@ -871,6 +951,7 @@ function createTaskItem(task){
     allTasks.forEach(task => {
       taskList.push(task.getAttribute("id"))// add the target item id to the array
     });
+
     let taskIndex = taskList.indexOf(taskItemId); // find the indext the target being dragged holds at the moment
     chrome.storage.local.get(['TargetsList']).then(targetList => {
       let targetListReturned = targetList['TargetsList']
@@ -947,7 +1028,7 @@ function deleteProcedureNoteItem(noteItem){
       if(target.selected == true){
         target.methodology.forEach(procedure=>{
           if(procedure.id == document.getElementById("procedureBody").dataset.procedureId){
-            procedure.body.forEach((note,index)=>{
+            procedure.body.forEach((note,index)=>{   
               if(note.id == noteItemId){
                 procedure.body.splice(index,1)
                 chrome.storage.local.set({"TargetsList": targetListReturned})

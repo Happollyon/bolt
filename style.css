@@ -5,7 +5,9 @@ Accent color: #ff79c6 (a bold magenta color that adds a pop of brightness)
 Text color: #f8f8f2 (a light grayish-white that provides good contrast with the dark background)
 Link color: #8be9fd (a light blue color that stands out against the dark background)
 **/
-
+[contenteditable] {
+    -webkit-user-modify: read-write-plaintext-only;
+  }
 body{
     background-color: #282a36;
     color: #f8f8f2;
@@ -18,7 +20,6 @@ body{
 #pannel{
     min-height: 95%;
    
-    
 }
 
 nav{
